@@ -253,7 +253,7 @@ const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
             field={field}
             value={formValues[field.name]}
             error={touched[field.name] ? errors[field.name] : undefined}
-            onChange={(value) => handleFieldChange(field.name, value)}
+            onChange={(value: any) => handleFieldChange(field.name, value)}
             onBlur={() => handleFieldBlur(field.name)}
           />
         ))}

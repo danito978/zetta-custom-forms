@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { validateFormSchema, isValidJSON, ValidationResult } from '../utils/schemaValidator';
+import defaultFormSchema from '../../../lib/form-schema.json';
 
 interface SchemaInputProps {
   onSchemaChange?: (schema: any, isValid: boolean) => void;
@@ -106,26 +107,7 @@ const SchemaInput = ({ onSchemaChange, placeholder, defaultValue = '' }: SchemaI
   };
 
   const loadExampleSchema = () => {
-    const exampleSchema = {
-      id: "example_field",
-      name: "example",
-      type: "text",
-      label: "Example Field",
-      placeholder: "Enter some text",
-      description: "This is an example field",
-      required: true,
-      validation: {
-        minLength: 3,
-        maxLength: 50,
-        messages: {
-          required: "This field is required",
-          minLength: "Must be at least 3 characters",
-          maxLength: "Cannot exceed 50 characters"
-        }
-      }
-    };
-    
-    const formatted = JSON.stringify(exampleSchema, null, 2);
+    const formatted = JSON.stringify(defaultFormSchema, null, 2);
     setSchemaText(formatted);
     validateAndParseSchema(formatted);
   };
