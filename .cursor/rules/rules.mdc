@@ -1,0 +1,9 @@
+---
+alwaysApply: true
+---
+
+When adding code, don't leave comments for every function, do not have more than one return (JSX) in a single file and do not leave console logs after debugging is done.
+
+When creating an interface or type, create a file in /src/types and export it to your component
+
+Use ShadCN when possible.
