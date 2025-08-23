@@ -1,0 +1,130 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Comprehensive Input Field Schema",
+  "description": "A complete schema defining all possible input field types and their configurations",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the input field"
+    },
+    "name": {
+      "type": "string",
+      "description": "Name attribute for the input field"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "text",
+        "email",
+        "password",
+        "number",
+        "tel",
+        "url",
+        "search",
+        "date",
+        "datetime-local",
+        "time",
+        "month",
+        "week",
+        "color",
+        "range",
+        "file",
+        "hidden",
+        "textarea",
+        "select",
+        "multiselect",
+        "radio",
+        "checkbox",
+        "switch",
+        "rating",
+        "slider",
+        "autocomplete",
+        "tags",
+        "rich-text",
+        "code",
+        "json"
+      ],
+      "description": "Type of input field"
+    },
+    "label": {
+      "type": "string",
+      "description": "Display label for the input field"
+    },
+    "placeholder": {
+      "type": "string",
+      "description": "Placeholder text shown when input is empty"
+    },
+    "description": {
+      "type": "string",
+      "description": "Help text or description for the field"
+    },
+    "defaultValue": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "number" },
+        { "type": "boolean" },
+        { "type": "array" },
+        { "type": "object" }
+      ],
+      "description": "Default value for the input field"
+    },
+    "required": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the field is required"
+    },
+    "disabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the field is disabled"
+    },
+    "validation": {
+      "type": "object",
+      "properties": {
+        "min": {
+          "type": "number",
+          "description": "Minimum value (for numbers) or length (for strings)"
+        },
+        "max": {
+          "type": "number",
+          "description": "Maximum value (for numbers) or length (for strings)"
+        },
+        "minLength": {
+          "type": "number",
+          "description": "Minimum string length"
+        },
+        "maxLength": {
+          "type": "number",
+          "description": "Maximum string length"
+        },
+        "pattern": {
+          "type": "string",
+          "description": "Regular expression pattern for validation"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["email", "url", "date", "time", "datetime", "phone", "postal-code", "credit-card"],
+          "description": "Predefined format validation"
+        },
+        "custom": {
+          "type": "string",
+          "description": "Custom validation function name or expression"
+        },
+        "messages": {
+          "type": "object",
+          "properties": {
+            "required": { "type": "string" },
+            "min": { "type": "string" },
+            "max": { "type": "string" },
+            "pattern": { "type": "string" },
+            "format": { "type": "string" },
+            "custom": { "type": "string" }
+          },
+          "description": "Custom validation error messages"
+        }
+      },
+      "description": "Validation rules for the input field"
+    }
+  }
+}

@@ -7,3 +7,5 @@ When adding code, don't leave comments for every function, do not have more than
 When creating an interface or type, create a file in /src/types and export it to your component
 
 Use ShadCN when possible.
+
+Refer to README.md for more guidence

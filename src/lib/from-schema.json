@@ -1,0 +1,15 @@
+{
+    "title": "A customizable registration form",
+    "description": "A simple form with additional properties example.",
+    "type": "object",
+    "required": [
+      "firstName",
+      "lastName"
+    ],
+    "fields": {
+      "firstName": {
+      },
+      "lastName": {
+      }
+    }
+  }
