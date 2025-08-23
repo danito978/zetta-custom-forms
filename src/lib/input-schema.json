@@ -117,6 +117,8 @@
             "required": { "type": "string" },
             "min": { "type": "string" },
             "max": { "type": "string" },
+            "minLength": { "type": "string" },
+            "maxLength": { "type": "string" },
             "pattern": { "type": "string" },
             "format": { "type": "string" },
             "custom": { "type": "string" }

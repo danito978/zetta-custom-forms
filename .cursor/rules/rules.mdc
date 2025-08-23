@@ -8,6 +8,8 @@ When creating an interface or type, create a file in /src/types and export it to
 
 Use ShadCN when possible.
 
+Do not use "any" as a type.
+
 Do not use functions name().. use modern ecmascript ways of creating a functions with const
 
 Refer to README.md for more guidence

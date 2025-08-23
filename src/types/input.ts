@@ -35,6 +35,8 @@ export interface ValidationMessages {
   required?: string;
   min?: string;
   max?: string;
+  minLength?: string;
+  maxLength?: string;
   pattern?: string;
   format?: string;
   custom?: string;

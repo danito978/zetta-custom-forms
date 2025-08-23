@@ -24,14 +24,14 @@ const Navigation = () => {
               Home
             </Link>
             <Link
-              to="/from-generator"
+              to="/form-generator"
               className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                isActive('/from-generator')
+                isActive('/form-generator')
                   ? 'border-primary-500 text-neutral-900'
                   : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300'
               }`}
             >
-              From Generator
+              Form Generator
             </Link>
           </div>
         </div>
