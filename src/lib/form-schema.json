@@ -1,15 +1,64 @@
 {
     "title": "A customizable registration form",
     "description": "A simple form with additional properties example.",
-    "type": "object",
-    "required": [
-      "firstName",
-      "lastName"
-    ],
     "fields": {
       "firstName": {
+        "id": "firstName",
+        "name": "firstName",
+        "type": "text",
+        "label": "First Name",
+        "placeholder": "Enter your first name",
+        "description": "Your legal first name",
+        "required": true,
+        "validation": {
+          "minLength": 2,
+          "maxLength": 50,
+          "pattern": "^[A-Za-z\\s'-]+$",
+          "messages": {
+            "required": "First name is required",
+            "minLength": "First name must be at least 2 characters",
+            "maxLength": "First name cannot exceed 50 characters",
+            "pattern": "First name can only contain letters, spaces, hyphens, and apostrophes"
+          }
+        }
       },
       "lastName": {
+        "id": "lastName",
+        "name": "lastName",
+        "type": "text",
+        "label": "Last Name",
+        "placeholder": "Enter your last name",
+        "description": "Your legal last name",
+        "required": true,
+        "validation": {
+          "minLength": 2,
+          "maxLength": 50,
+          "pattern": "^[A-Za-z\\s'-]+$",
+          "messages": {
+            "required": "Last name is required",
+            "minLength": "Last name must be at least 2 characters",
+            "maxLength": "Last name cannot exceed 50 characters",
+            "pattern": "Last name can only contain letters, spaces, hyphens, and apostrophes"
+          }
+        }
+      },
+      "email": {
+        "id": "email",
+        "name": "email",
+        "type": "email",
+        "label": "Email Address",
+        "placeholder": "Enter your email address",
+        "description": "We'll use this to send you important updates and notifications",
+        "required": true,
+        "validation": {
+          "format": "email",
+          "maxLength": 100,
+          "messages": {
+            "required": "Email address is required",
+            "format": "Please enter a valid email address",
+            "maxLength": "Email address cannot exceed 100 characters"
+          }
+        }
       }
     }
   }

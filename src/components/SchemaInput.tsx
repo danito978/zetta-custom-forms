@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 
 interface SchemaInputProps {
   onSchemaChange?: (schema: any, isValid: boolean) => void;
@@ -31,6 +31,13 @@ const SchemaInput = ({ onSchemaChange, placeholder, defaultValue = '' }: SchemaI
       onSchemaChange?.(null, false);
     }
   }, [onSchemaChange]);
+
+  // Validate default value on mount
+  useEffect(() => {
+    if (defaultValue.trim()) {
+      validateAndParseSchema(defaultValue);
+    }
+  }, [defaultValue, validateAndParseSchema]);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;

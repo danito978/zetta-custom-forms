@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Navigation from '../components/Navigation';
 import SchemaInput from '../components/SchemaInput';
+import defaultFormSchema from '../lib/form-schema.json';
 
 const FromGenerator = () => {
   const [currentSchema, setCurrentSchema] = useState<any>(null);
@@ -30,6 +31,7 @@ const FromGenerator = () => {
           <SchemaInput 
             onSchemaChange={handleSchemaChange}
             placeholder="Enter your input field schema in JSON format..."
+            defaultValue={JSON.stringify(defaultFormSchema, null, 2)}
           />
 
           {/* Preview Section */}
