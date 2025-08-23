@@ -19,6 +19,24 @@ export type AutoComplete =
 export type ValidationFormat = 'email' | 'url' | 'date' | 'time' | 'datetime' | 'phone' | 'postal-code' | 'credit-card';
 export type ConditionalOperator = 'equals' | 'not-equals' | 'contains' | 'not-contains' | 'greater-than' | 'less-than' | 'in' | 'not-in';
 export type ConditionalAction = 'show' | 'hide' | 'enable' | 'disable' | 'require' | 'optional';
+
+// Visibility condition types
+export type VisibilityOperator = 'equals' | 'not_equals' | 'contains' | 'not_contains' | 'in' | 'not_in' | 'exists' | 'not_exists';
+export type VisibilityLogic = 'and' | 'or';
+
+export interface VisibilityConditionRule {
+  field: string;
+  operator: VisibilityOperator;
+  value?: string | number | boolean | Array<string | number | boolean>;
+}
+
+export interface VisibilityCondition {
+  field?: string;
+  operator?: VisibilityOperator;
+  value?: string | number | boolean | Array<string | number | boolean>;
+  logic?: VisibilityLogic;
+  conditions?: VisibilityConditionRule[];
+}
 export type InputMode = 'none' | 'text' | 'decimal' | 'numeric' | 'tel' | 'search' | 'email' | 'url';
 export type AutoCapitalize = 'off' | 'none' | 'on' | 'sentences' | 'words' | 'characters';
 
@@ -116,6 +134,9 @@ export interface InputField {
   
   // Fields (for group type)
   fields?: Record<string, InputField>;
+  
+  // Visibility conditions
+  visibilityCondition?: VisibilityCondition;
   
   // HTML attributes
   autoComplete?: AutoComplete;
