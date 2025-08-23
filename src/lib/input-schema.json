@@ -89,6 +89,63 @@
         }
       }
     },
+    "visibilityCondition": {
+      "type": "object",
+      "description": "Conditions that determine when this field/group should be visible",
+      "properties": {
+        "field": {
+          "type": "string",
+          "description": "Name of the field whose value determines visibility"
+        },
+        "operator": {
+          "type": "string",
+          "enum": ["equals", "not_equals", "contains", "not_contains", "in", "not_in", "exists", "not_exists"],
+          "description": "Comparison operator for the condition"
+        },
+        "value": {
+          "oneOf": [
+            {"type": "string"},
+            {"type": "number"},
+            {"type": "boolean"},
+            {"type": "array", "items": {"oneOf": [{"type": "string"}, {"type": "number"}, {"type": "boolean"}]}}
+          ],
+          "description": "Value(s) to compare against"
+        },
+        "logic": {
+          "type": "string",
+          "enum": ["and", "or"],
+          "default": "and",
+          "description": "Logic operator when multiple conditions exist"
+        },
+        "conditions": {
+          "type": "array",
+          "description": "Multiple conditions for complex visibility rules",
+          "items": {
+            "type": "object",
+            "properties": {
+              "field": {"type": "string"},
+              "operator": {
+                "type": "string",
+                "enum": ["equals", "not_equals", "contains", "not_contains", "in", "not_in", "exists", "not_exists"]
+              },
+              "value": {
+                "oneOf": [
+                  {"type": "string"},
+                  {"type": "number"},
+                  {"type": "boolean"},
+                  {"type": "array", "items": {"oneOf": [{"type": "string"}, {"type": "number"}, {"type": "boolean"}]}}
+                ]
+              }
+            },
+            "required": ["field", "operator"]
+          }
+        }
+      },
+      "anyOf": [
+        {"required": ["field", "operator"]},
+        {"required": ["conditions"]}
+      ]
+    },
     "validation": {
       "type": "object",
       "properties": {
