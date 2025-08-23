@@ -10,3 +10,4 @@ export { default as CheckboxInput } from './CheckboxInput';
 export { default as RadioInput } from './RadioInput';
 export { default as DateInput } from './DateInput';
 export { default as FileInput } from './FileInput';
+export { default as GroupInput } from './GroupInput';

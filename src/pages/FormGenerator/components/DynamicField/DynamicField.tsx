@@ -8,7 +8,8 @@ import {
   CheckboxInput,
   RadioInput,
   DateInput,
-  FileInput
+  FileInput,
+  GroupInput
 } from './index';
 
 interface DynamicFieldProps {
@@ -119,6 +120,17 @@ const DynamicField = ({ field, value, error, onChange, onBlur }: DynamicFieldPro
           />
         );
 
+      case 'group':
+        return (
+          <GroupInput
+            field={field}
+            value={value}
+            error={error}
+            onChange={onChange}
+            onBlur={onBlur}
+          />
+        );
+
       default:
         // Fallback to text input for unknown types
         return (
@@ -132,6 +144,11 @@ const DynamicField = ({ field, value, error, onChange, onBlur }: DynamicFieldPro
         );
     }
   };
+
+  // Group fields handle their own layout
+  if (field.type === 'group') {
+    return renderInput();
+  }
 
   return (
     <div className="space-y-1">

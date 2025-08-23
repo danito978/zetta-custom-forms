@@ -5,7 +5,7 @@ export type InputType =
   | 'date' | 'datetime-local' | 'time' | 'month' | 'week' | 'color' | 'range'
   | 'file' | 'hidden' | 'textarea' | 'select' | 'multiselect' | 'radio' 
   | 'checkbox' | 'switch' | 'rating' | 'slider' | 'autocomplete' | 'tags'
-  | 'rich-text' | 'code' | 'json';
+  | 'rich-text' | 'code' | 'json' | 'group';
 
 export type InputSize = 'small' | 'medium' | 'large';
 export type InputVariant = 'outlined' | 'filled' | 'underlined' | 'borderless';
@@ -113,6 +113,9 @@ export interface InputField {
   multiple?: boolean;
   searchable?: boolean;
   clearable?: boolean;
+  
+  // Fields (for group type)
+  fields?: Record<string, InputField>;
   
   // HTML attributes
   autoComplete?: AutoComplete;
