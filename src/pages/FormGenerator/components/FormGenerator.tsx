@@ -1,8 +1,9 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import DynamicField from './DynamicField';
 import { InputField } from '../../../types/input';
 import { Button } from '../../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
+import { getVisibleFields } from '../utils/visibilityEvaluator';
 
 interface FormGeneratorProps {
   schema: any;
@@ -14,12 +15,20 @@ const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
-  // Extract fields from schema
-  const fields = schema?.fields ? Object.entries(schema.fields).map(([key, fieldData]: [string, any]) => ({
-    ...fieldData,
-    id: fieldData.id || key,
-    name: fieldData.name || key,
-  })) : [];
+  // Extract visible fields from schema based on current form values
+  const visibleFields = useMemo(() => {
+    if (!schema?.fields) return {};
+    return getVisibleFields(schema.fields, formValues);
+  }, [schema?.fields, formValues]);
+
+  // Convert visible fields to array format for rendering
+  const fields = useMemo(() => {
+    return Object.entries(visibleFields).map(([key, fieldData]: [string, any]) => ({
+      ...fieldData,
+      id: fieldData.id || key,
+      name: fieldData.name || key,
+    }));
+  }, [visibleFields]);
 
   // Reset form errors when schema changes and re-validate existing values
   useEffect(() => {
@@ -31,11 +40,12 @@ const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
     
     // Create a timeout to re-validate after state updates
     const timeoutId = setTimeout(() => {
-      const currentFields = schema?.fields ? Object.entries(schema.fields).map(([key, fieldData]: [string, any]) => ({
+      const currentVisibleFields = getVisibleFields(schema.fields || {}, formValues);
+      const currentFields = Object.entries(currentVisibleFields).map(([key, fieldData]: [string, any]) => ({
         ...fieldData,
         id: fieldData.id || key,
         name: fieldData.name || key,
-      })) : [];
+      }));
       
       const newErrors: Record<string, string> = {};
       currentFields.forEach(field => {

@@ -1,16 +1,70 @@
 {
-    "title": "Complete Form with Nested Groups Demo",
-    "description": "A comprehensive form showcasing all supported field types including nested groups.",
+  "title": "Dynamic Form with Conditional Visibility",
+  "description": "A comprehensive form showcasing dynamic visibility based on field values, including INDIVIDUAL vs BUSINESS sections.",
+  "_examples": {
+    "_note": "This schema demonstrates dynamic visibility conditions. Fields can appear/disappear based on other field values.",
+    "_howToUse": [
+      "1. Select 'Individual' in Account Type to see Personal Information section",
+      "2. Select 'Business' in Account Type to see Business Information section", 
+      "3. Choose 'Mid-level' or 'Senior' experience to see Management Experience options",
+      "4. Check the 'Dynamic Visibility Examples' section at the bottom for more demonstrations"
+    ],
+    "_visibilityOperators": {
+      "equals": "Field value exactly matches the specified value",
+      "not_equals": "Field value does not match the specified value", 
+      "in": "Field value is one of the values in the specified array",
+      "not_in": "Field value is not in the specified array",
+      "contains": "Field value (string/array) contains the specified value",
+      "not_contains": "Field value (string/array) does not contain the specified value",
+      "exists": "Field has any non-empty value",
+      "not_exists": "Field is empty, null, or undefined"
+    },
+    "_multipleConditions": {
+      "logic": "Use 'and' or 'or' to combine multiple conditions",
+      "example": {
+        "visibilityCondition": {
+          "logic": "and",
+          "conditions": [
+            {"field": "accountType", "operator": "equals", "value": "BUSINESS"},
+            {"field": "professionalInfo.experience", "operator": "in", "value": ["mid", "senior"]}
+          ]
+        }
+      }
+    }
+  },
+  "fields": {
+    "accountType": {
+      "id": "accountType",
+      "name": "accountType",
+      "type": "select",
+      "label": "Account Type",
+      "description": "Choose your account type to see relevant fields",
+      "required": true,
+      "options": [
+        {"label": "Select account type...", "value": ""},
+        {"label": "Individual", "value": "INDIVIDUAL"},
+        {"label": "Business", "value": "BUSINESS"}
+      ],
+      "validation": {
+        "messages": {
+          "required": "Please select an account type"
+        }
+      }
+    },
+          "personalInfo": {
+      "id": "personalInfo",
+      "name": "personalInfo",
+      "type": "group",
+      "label": "Personal Information",
+      "description": "Your basic personal details",
+      "required": true,
+      "visibilityCondition": {
+        "field": "accountType",
+        "operator": "equals",
+        "value": "INDIVIDUAL"
+      },
     "fields": {
-      "personalInfo": {
-        "id": "personalInfo",
-        "name": "personalInfo",
-        "type": "group",
-        "label": "Personal Information",
-        "description": "Your basic personal details",
-        "required": true,
-        "fields": {
-          "firstName": {
+      "firstName": {
             "id": "firstName",
             "name": "firstName",
             "type": "text",
@@ -140,6 +194,95 @@
           }
         }
       },
+      "businessInfo": {
+        "id": "businessInfo",
+        "name": "businessInfo",
+        "type": "group",
+        "label": "Business Information",
+        "description": "Your company and business details",
+        "required": true,
+        "visibilityCondition": {
+          "field": "accountType",
+          "operator": "equals",
+          "value": "BUSINESS"
+        },
+        "fields": {
+          "companyName": {
+            "id": "companyName",
+            "name": "companyName",
+            "type": "text",
+            "label": "Company Name",
+            "placeholder": "Your company name",
+            "required": true,
+            "validation": {
+              "minLength": 2,
+              "maxLength": 100,
+              "messages": {
+                "required": "Company name is required",
+                "minLength": "Company name must be at least 2 characters",
+                "maxLength": "Company name cannot exceed 100 characters"
+              }
+            }
+          },
+          "businessType": {
+            "id": "businessType",
+            "name": "businessType",
+            "type": "select",
+            "label": "Business Type",
+            "description": "Select your business type",
+            "required": true,
+            "options": [
+              {"label": "Select business type...", "value": ""},
+              {"label": "Sole Proprietorship", "value": "sole_proprietorship"},
+              {"label": "Partnership", "value": "partnership"},
+              {"label": "LLC", "value": "llc"},
+              {"label": "Corporation", "value": "corporation"},
+              {"label": "Non-profit", "value": "nonprofit"}
+            ],
+            "validation": {
+              "messages": {
+                "required": "Please select your business type"
+              }
+            }
+          },
+          "taxId": {
+            "id": "taxId",
+            "name": "taxId",
+            "type": "text",
+            "label": "Tax ID / EIN",
+            "placeholder": "XX-XXXXXXX",
+            "required": true,
+            "validation": {
+              "pattern": "^\\d{2}-\\d{7}$",
+              "messages": {
+                "required": "Tax ID is required",
+                "pattern": "Tax ID must be in format XX-XXXXXXX"
+              }
+            }
+          },
+          "employees": {
+            "id": "employees",
+            "name": "employees",
+            "type": "select",
+            "label": "Number of Employees",
+            "description": "How many employees does your business have?",
+            "required": true,
+            "options": [
+              {"label": "Select employee count...", "value": ""},
+              {"label": "1-10", "value": "1-10"},
+              {"label": "11-50", "value": "11-50"},
+              {"label": "51-200", "value": "51-200"},
+              {"label": "201-500", "value": "201-500"},
+              {"label": "500+", "value": "500+"}
+            ],
+            "validation": {
+              "messages": {
+                "required": "Please select the number of employees"
+              }
+            }
+          }
+        }
+      },
       "professionalInfo": {
         "id": "professionalInfo",
         "name": "professionalInfo",
@@ -184,13 +327,142 @@
               { "label": "C#", "value": "csharp" },
               { "label": "Go", "value": "go" }
             ]
+          },
+          "managementExperience": {
+            "id": "managementExperience",
+            "name": "managementExperience",
+            "type": "radio",
+            "label": "Management Experience",
+            "description": "Do you have experience managing teams?",
+            "required": false,
+            "visibilityCondition": {
+              "field": "professionalInfo.experience",
+              "operator": "in",
+              "value": ["mid", "senior"]
+            },
+            "options": [
+              { "label": "No management experience", "value": "none" },
+              { "label": "1-5 people", "value": "small" },
+              { "label": "6-15 people", "value": "medium" },
+              { "label": "16+ people", "value": "large" }
+            ]
+          }
+        }
+      },
+      "exampleSection": {
+        "id": "exampleSection",
+        "name": "exampleSection",
+        "type": "group",
+        "label": "🎯 Dynamic Visibility Examples",
+        "description": "This section demonstrates how fields appear/disappear based on your selections above",
+        "required": false,
+        "fields": {
+          "accountTypeExample": {
+            "id": "accountTypeExample",
+            "name": "accountTypeExample",
+            "type": "text",
+            "label": "Account Type Dependent Field",
+            "placeholder": "This field is always visible",
+            "description": "This field shows different descriptions based on your account type selection",
+            "required": false
+          },
+          "individualOnlyField": {
+            "id": "individualOnlyField",
+            "name": "individualOnlyField",
+            "type": "text",
+            "label": "🙋‍♂️ Individual Only Field",
+            "placeholder": "Only visible for Individual accounts",
+            "description": "This field only appears when Account Type = 'Individual'",
+            "required": false,
+            "visibilityCondition": {
+              "field": "accountType",
+              "operator": "equals",
+              "value": "INDIVIDUAL"
+            }
+          },
+          "businessOnlyField": {
+            "id": "businessOnlyField",
+            "name": "businessOnlyField",
+            "type": "text",
+            "label": "🏢 Business Only Field",
+            "placeholder": "Only visible for Business accounts",
+            "description": "This field only appears when Account Type = 'Business'",
+            "required": false,
+            "visibilityCondition": {
+              "field": "accountType",
+              "operator": "equals",
+              "value": "BUSINESS"
+            }
+          },
+          "experienceBasedField": {
+            "id": "experienceBasedField",
+            "name": "experienceBasedField",
+            "type": "select",
+            "label": "👨‍💼 Senior Level Options",
+            "description": "This field only appears for Mid-level and Senior experience levels",
+            "required": false,
+            "visibilityCondition": {
+              "field": "professionalInfo.experience",
+              "operator": "in",
+              "value": ["mid", "senior"]
+            },
+            "options": [
+              {"label": "Select an option...", "value": ""},
+              {"label": "Leadership Training", "value": "leadership"},
+              {"label": "Mentoring Program", "value": "mentoring"},
+              {"label": "Strategic Planning", "value": "strategic"},
+              {"label": "Budget Management", "value": "budget"}
+            ]
+          },
+          "multiConditionField": {
+            "id": "multiConditionField",
+            "name": "multiConditionField",
+            "type": "textarea",
+            "label": "🎯 Multi-Condition Field",
+            "placeholder": "Tell us about your business leadership experience...",
+            "description": "This field appears only for Business accounts with Mid/Senior experience",
+            "required": false,
+            "rows": 3,
+            "visibilityCondition": {
+              "logic": "and",
+              "conditions": [
+                {
+                  "field": "accountType",
+                  "operator": "equals",
+                  "value": "BUSINESS"
+                },
+                {
+                  "field": "professionalInfo.experience",
+                  "operator": "in",
+                  "value": ["mid", "senior"]
+                }
+              ]
+            }
+          },
+          "anyAccountTypeField": {
+            "id": "anyAccountTypeField",
+            "name": "anyAccountTypeField",
+            "type": "radio",
+            "label": "📋 Field for Any Account Type",
+            "description": "This field appears when ANY account type is selected (not empty)",
+            "required": false,
+            "visibilityCondition": {
+              "field": "accountType",
+              "operator": "not_equals",
+              "value": ""
+            },
+            "options": [
+              {"label": "Option A", "value": "a"},
+              {"label": "Option B", "value": "b"},
+              {"label": "Option C", "value": "c"}
+            ]
           }
         }
       }
     },
-    "required": [
-      "personalInfo",
-      "contactInfo",
-      "professionalInfo"
-    ]
+      "required": [
+    "accountType",
+    "contactInfo",
+    "professionalInfo"
+  ]
   }
