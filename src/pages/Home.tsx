@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import Navigation from '../components/Navigation';
 
-function Home() {
+const Home = () => {
   return (
     <div className="min-h-screen bg-neutral-50">
       <Navigation />
@@ -29,6 +29,6 @@ function Home() {
       </div>
     </div>
   );
-}
+};
 
 export default Home;
