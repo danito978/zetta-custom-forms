@@ -1,64 +1,196 @@
 {
-    "title": "A customizable registration form",
-    "description": "A simple form with additional properties example.",
+    "title": "Complete Form with Nested Groups Demo",
+    "description": "A comprehensive form showcasing all supported field types including nested groups.",
     "fields": {
-      "firstName": {
-        "id": "firstName",
-        "name": "firstName",
-        "type": "text",
-        "label": "First Name",
-        "placeholder": "Enter your first name",
-        "description": "Your legal first name",
+      "personalInfo": {
+        "id": "personalInfo",
+        "name": "personalInfo",
+        "type": "group",
+        "label": "Personal Information",
+        "description": "Your basic personal details",
         "required": true,
-        "validation": {
-          "minLength": 2,
-          "maxLength": 50,
-          "pattern": "^[A-Za-z\\s'-]+$",
-          "messages": {
-            "required": "First name is required",
-            "minLength": "First name must be at least 2 characters",
-            "maxLength": "First name cannot exceed 50 characters",
-            "pattern": "First name can only contain letters, spaces, hyphens, and apostrophes"
+        "fields": {
+          "firstName": {
+            "id": "firstName",
+            "name": "firstName",
+            "type": "text",
+            "label": "First Name",
+            "placeholder": "Enter your first name",
+            "description": "Your legal first name",
+            "required": true,
+            "validation": {
+              "minLength": 2,
+              "maxLength": 50,
+              "pattern": "^[A-Za-z\\s'-]+$",
+              "messages": {
+                "required": "First name is required",
+                "minLength": "First name must be at least 2 characters",
+                "maxLength": "First name cannot exceed 50 characters",
+                "pattern": "First name can only contain letters, spaces, hyphens, and apostrophes"
+              }
+            }
+          },
+          "lastName": {
+            "id": "lastName",
+            "name": "lastName",
+            "type": "text",
+            "label": "Last Name",
+            "placeholder": "Enter your last name",
+            "description": "Your legal last name",
+            "required": true,
+            "validation": {
+              "minLength": 2,
+              "maxLength": 50,
+              "pattern": "^[A-Za-z\\s'-]+$",
+              "messages": {
+                "required": "Last name is required",
+                "minLength": "Last name must be at least 2 characters",
+                "maxLength": "Last name cannot exceed 50 characters",
+                "pattern": "Last name can only contain letters, spaces, hyphens, and apostrophes"
+              }
+            }
+          },
+          "bio": {
+            "id": "bio",
+            "name": "bio",
+            "type": "textarea",
+            "label": "Biography",
+            "placeholder": "Tell us about yourself...",
+            "description": "A brief description about yourself (optional)",
+            "required": false,
+            "validation": {
+              "maxLength": 500,
+              "messages": {
+                "maxLength": "Biography cannot exceed 500 characters"
+              }
+            }
           }
         }
       },
-      "lastName": {
-        "id": "lastName",
-        "name": "lastName",
-        "type": "text",
-        "label": "Last Name",
-        "placeholder": "Enter your last name",
-        "description": "Your legal last name",
+      "contactInfo": {
+        "id": "contactInfo",
+        "name": "contactInfo",
+        "type": "group",
+        "label": "Contact Information",
+        "description": "How we can reach you",
         "required": true,
-        "validation": {
-          "minLength": 2,
-          "maxLength": 50,
-          "pattern": "^[A-Za-z\\s'-]+$",
-          "messages": {
-            "required": "Last name is required",
-            "minLength": "Last name must be at least 2 characters",
-            "maxLength": "Last name cannot exceed 50 characters",
-            "pattern": "Last name can only contain letters, spaces, hyphens, and apostrophes"
+        "fields": {
+          "email": {
+            "id": "email",
+            "name": "email",
+            "type": "text",
+            "label": "Email Address (Text with Custom Validation)",
+            "placeholder": "Enter your email address",
+            "description": "Email field using text type with custom email validation pattern",
+            "required": true,
+            "validation": {
+              "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
+              "maxLength": 100,
+              "messages": {
+                "required": "Email address is required",
+                "pattern": "Please enter a valid email address (e.g., user@example.com)",
+                "maxLength": "Email address cannot exceed 100 characters"
+              }
+            }
+          },
+          "address": {
+            "id": "address",
+            "name": "address",
+            "type": "group",
+            "label": "Home Address",
+            "description": "Your residential address details",
+            "required": false,
+            "fields": {
+              "street": {
+                "id": "street",
+                "name": "street",
+                "type": "text",
+                "label": "Street Address",
+                "placeholder": "123 Main Street",
+                "required": false
+              },
+              "city": {
+                "id": "city",
+                "name": "city",
+                "type": "text",
+                "label": "City",
+                "placeholder": "Your city",
+                "required": false
+              },
+              "country": {
+                "id": "country",
+                "name": "country",
+                "type": "select",
+                "label": "Country",
+                "description": "Select your country of residence",
+                "required": false,
+                "options": [
+                  { "label": "Select a country", "value": "", "disabled": true },
+                  { "label": "United States", "value": "us" },
+                  { "label": "Canada", "value": "ca" },
+                  { "label": "United Kingdom", "value": "uk" },
+                  { "label": "Germany", "value": "de" },
+                  { "label": "France", "value": "fr" },
+                  { "label": "Australia", "value": "au" },
+                  { "label": "Japan", "value": "jp" },
+                  { "label": "Other", "value": "other" }
+                ]
+              }
+            }
           }
         }
       },
-      "email": {
-        "id": "email",
-        "name": "email",
-        "type": "email",
-        "label": "Email Address",
-        "placeholder": "Enter your email address",
-        "description": "We'll use this to send you important updates and notifications",
+      "professionalInfo": {
+        "id": "professionalInfo",
+        "name": "professionalInfo",
+        "type": "group",
+        "label": "Professional Information",
+        "description": "Your work and experience details",
         "required": true,
-        "validation": {
-          "format": "email",
-          "maxLength": 100,
-          "messages": {
-            "required": "Email address is required",
-            "format": "Please enter a valid email address",
-            "maxLength": "Email address cannot exceed 100 characters"
+        "fields": {
+          "experience": {
+            "id": "experience",
+            "name": "experience",
+            "type": "radio",
+            "label": "Years of Experience",
+            "description": "How many years of professional experience do you have?",
+            "required": true,
+            "options": [
+              { "label": "0-1 years (Entry level)", "value": "entry" },
+              { "label": "2-5 years (Junior)", "value": "junior" },
+              { "label": "6-10 years (Mid-level)", "value": "mid" },
+              { "label": "11+ years (Senior)", "value": "senior" }
+            ],
+            "validation": {
+              "messages": {
+                "required": "Please select your experience level"
+              }
+            }
+          },
+          "skills": {
+            "id": "skills",
+            "name": "skills",
+            "type": "checkbox",
+            "label": "Technical Skills",
+            "description": "Select all programming languages you're proficient in",
+            "required": false,
+            "options": [
+              { "label": "JavaScript", "value": "javascript" },
+              { "label": "TypeScript", "value": "typescript" },
+              { "label": "React", "value": "react" },
+              { "label": "Node.js", "value": "nodejs" },
+              { "label": "Python", "value": "python" },
+              { "label": "Java", "value": "java" },
+              { "label": "C#", "value": "csharp" },
+              { "label": "Go", "value": "go" }
+            ]
           }
         }
       }
-    }
+    },
+    "required": [
+      "personalInfo",
+      "contactInfo",
+      "professionalInfo"
+    ]
   }

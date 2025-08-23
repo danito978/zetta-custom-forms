@@ -1,6 +1,9 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { validateFormSchema, isValidJSON, ValidationResult } from '../utils/schemaValidator';
 import defaultFormSchema from '../../../lib/form-schema.json';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
+import { Textarea } from '../../../components/ui/textarea';
 
 interface SchemaInputProps {
   onSchemaChange?: (schema: any, isValid: boolean) => void;
@@ -113,44 +116,64 @@ const SchemaInput = ({ onSchemaChange, placeholder, defaultValue = '' }: SchemaI
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 border border-neutral-200">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-neutral-900">Custom Schema Input</h3>
-        <div className="flex gap-2">
-          <button
-            onClick={loadExampleSchema}
-            className="px-3 py-1 text-sm bg-secondary-500 text-white rounded hover:bg-secondary-600 transition-colors"
-          >
-            Load Example
-          </button>
-          <button
-            onClick={handleFormatJson}
-            disabled={!schemaText.trim()}
-            className="px-3 py-1 text-sm bg-neutral-500 text-white rounded hover:bg-neutral-600 disabled:bg-neutral-300 disabled:cursor-not-allowed transition-colors"
-          >
-            Format JSON
-          </button>
-          <button
-            onClick={handleClear}
-            disabled={!schemaText.trim()}
-            className="px-3 py-1 text-sm bg-error-500 text-white rounded hover:bg-error-600 disabled:bg-neutral-300 disabled:cursor-not-allowed transition-colors"
-          >
-            Clear
-          </button>
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Custom Schema Input</CardTitle>
+            <CardDescription>
+              Define your form structure using JSON schema
+            </CardDescription>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              onClick={loadExampleSchema}
+              size="sm"
+              className="bg-secondary-500 hover:bg-secondary-600 text-white font-medium transition-colors duration-200 flex items-center gap-1.5"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Load Example
+            </Button>
+            <Button
+              onClick={handleFormatJson}
+              disabled={!schemaText.trim()}
+              size="sm"
+              className="bg-success-500 hover:bg-success-600 disabled:bg-neutral-300 disabled:text-neutral-500 text-white font-medium transition-colors duration-200 flex items-center gap-1.5"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Format JSON
+            </Button>
+            <Button
+              onClick={handleClear}
+              disabled={!schemaText.trim()}
+              size="sm"
+              className="bg-error-500 hover:bg-error-600 disabled:bg-neutral-300 disabled:text-neutral-500 text-white font-medium transition-colors duration-200 flex items-center gap-1.5"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Clear
+            </Button>
+          </div>
         </div>
-      </div>
+      </CardHeader>
 
-      <div className="space-y-3">
-        <textarea
+      <CardContent className="space-y-4">
+        <Textarea
           value={schemaText}
           onChange={handleChange}
           placeholder={placeholder || 'Paste your JSON schema here...'}
-          className={`w-full h-64 p-3 border rounded-lg font-mono text-sm resize-vertical focus:outline-none focus:ring-2 transition-colors ${
+          className={`h-64 font-mono text-sm resize-vertical ${
             jsonError || (validationResult && !validationResult.isValid)
-              ? 'border-error-300 focus:ring-error-500 focus:border-error-500' 
+              ? 'border-destructive focus-visible:ring-destructive' 
               : validationResult?.isValid
-                ? 'border-success-300 focus:ring-success-500 focus:border-success-500'
-                : 'border-neutral-300 focus:ring-primary-500 focus:border-primary-500'
+                ? 'border-green-500 focus-visible:ring-green-500'
+                : ''
           }`}
         />
 
@@ -243,15 +266,15 @@ const SchemaInput = ({ onSchemaChange, placeholder, defaultValue = '' }: SchemaI
 
         {/* Success message */}
         {validationResult?.isValid && (
-          <div className="p-3 bg-success-50 border border-success-200 rounded-lg">
-            <p className="text-sm text-success-700">
+          <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-sm text-green-700">
               <span className="font-medium">Valid Schema:</span> Ready to generate form
               {validationResult.warnings.length > 0 && ' (with warnings above)'}
             </p>
           </div>
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

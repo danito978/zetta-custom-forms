@@ -1,6 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import DynamicField from './DynamicField';
 import { InputField } from '../../../types/input';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
 
 interface FormGeneratorProps {
   schema: any;
@@ -236,17 +238,16 @@ const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 border border-neutral-200">
-      <div className="mb-6">
-        <h3 className="text-xl font-semibold text-neutral-900 mb-2">
-          {schema.title || 'Generated Form'}
-        </h3>
+    <Card>
+      <CardHeader>
+        <CardTitle>{schema.title || 'Generated Form'}</CardTitle>
         {schema.description && (
-          <p className="text-neutral-600">{schema.description}</p>
+          <CardDescription>{schema.description}</CardDescription>
         )}
-      </div>
+      </CardHeader>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-6">
         {fields.map((field) => (
           <DynamicField
             key={field.id}
@@ -259,32 +260,40 @@ const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
         ))}
 
         <div className="flex gap-3 pt-4 border-t border-neutral-200">
-          <button
-            type="submit"
-            className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+          <Button 
+            type="submit" 
+            className="bg-primary-500 hover:bg-primary-600 text-white font-medium px-6 py-2 transition-colors duration-200 flex items-center gap-2"
           >
-            Submit
-          </button>
-          <button
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            Submit Form
+          </Button>
+          <Button
             type="button"
             onClick={handleReset}
-            className="bg-neutral-500 hover:bg-neutral-600 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+            variant="outline"
+            className="border-warning-300 text-warning-700 hover:bg-warning-50 hover:border-warning-400 font-medium px-6 py-2 transition-colors duration-200 flex items-center gap-2"
           >
-            Reset
-          </button>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Reset Form
+          </Button>
         </div>
-      </form>
+              </form>
 
-      {/* Form Values Debug (optional) */}
-      {Object.keys(formValues).length > 0 && (
-        <div className="mt-6 p-4 bg-neutral-50 rounded-lg border border-neutral-200">
-          <h4 className="text-sm font-medium text-neutral-700 mb-2">Form Values:</h4>
-          <pre className="text-xs text-neutral-600 overflow-x-auto">
-            {JSON.stringify(formValues, null, 2)}
-          </pre>
-        </div>
-      )}
-    </div>
+        {/* Form Values Debug (optional) */}
+        {Object.keys(formValues).length > 0 && (
+          <div className="mt-6 p-4 bg-muted rounded-lg border">
+            <h4 className="text-sm font-medium mb-2">Form Values:</h4>
+            <pre className="text-xs text-muted-foreground overflow-x-auto">
+              {JSON.stringify(formValues, null, 2)}
+            </pre>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

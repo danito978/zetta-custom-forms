@@ -43,7 +43,8 @@
         "tags",
         "rich-text",
         "code",
-        "json"
+        "json",
+        "group"
       ],
       "description": "Type of input field"
     },
@@ -78,6 +79,15 @@
       "type": "boolean",
       "default": false,
       "description": "Whether the field is disabled"
+    },
+    "fields": {
+      "type": "object",
+      "description": "Nested fields for group type (only applicable when type is 'group')",
+      "patternProperties": {
+        "^[a-zA-Z][a-zA-Z0-9_]*$": {
+          "$ref": "#"
+        }
+      }
     },
     "validation": {
       "type": "object",
