@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import DynamicField from './DynamicField';
 import { InputField } from '../../../types/input';
 
@@ -18,6 +18,94 @@ const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
     id: fieldData.id || key,
     name: fieldData.name || key,
   })) : [];
+
+  // Reset form errors when schema changes and re-validate existing values
+  useEffect(() => {
+    if (!schema) return;
+    
+    // Clear all errors and touched states when schema changes
+    setErrors({});
+    setTouched({});
+    
+    // Create a timeout to re-validate after state updates
+    const timeoutId = setTimeout(() => {
+      const currentFields = schema?.fields ? Object.entries(schema.fields).map(([key, fieldData]: [string, any]) => ({
+        ...fieldData,
+        id: fieldData.id || key,
+        name: fieldData.name || key,
+      })) : [];
+      
+      const newErrors: Record<string, string> = {};
+      currentFields.forEach(field => {
+        const currentValue = formValues[field.name];
+        if (currentValue !== undefined && currentValue !== '') {
+          // Inline validation to avoid dependency issues
+          if (!field.validation) return;
+          
+          const validation = field.validation;
+          let error: string | null = null;
+          
+          // Required validation
+          if (field.required && (!currentValue || (typeof currentValue === 'string' && !currentValue.trim()))) {
+            error = validation.messages?.required || `${field.label || field.name} is required`;
+          }
+          
+          // String length validations
+          if (!error && typeof currentValue === 'string' && currentValue.trim()) {
+            if (validation.minLength && currentValue.length < validation.minLength) {
+              error = validation.messages?.minLength || `Must be at least ${validation.minLength} characters`;
+            }
+            if (!error && validation.maxLength && currentValue.length > validation.maxLength) {
+              error = validation.messages?.maxLength || `Cannot exceed ${validation.maxLength} characters`;
+            }
+            
+            // Pattern validation
+            if (!error && validation.pattern) {
+              const regex = new RegExp(validation.pattern);
+              if (!regex.test(currentValue)) {
+                error = validation.messages?.pattern || 'Invalid format';
+              }
+            }
+            
+            // Format validation
+            if (!error && validation.format) {
+              let isValid = true;
+              switch (validation.format) {
+                case 'email':
+                  isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(currentValue);
+                  break;
+                case 'url':
+                  try {
+                    new URL(currentValue);
+                  } catch {
+                    isValid = false;
+                  }
+                  break;
+                case 'phone':
+                  isValid = /^[\+]?[1-9][\d]{0,15}$/.test(currentValue.replace(/[\s\-\(\)]/g, ''));
+                  break;
+                default:
+                  break;
+              }
+              if (!isValid) {
+                error = validation.messages?.format || `Invalid ${validation.format} format`;
+              }
+            }
+          }
+          
+          if (error) {
+            newErrors[field.name] = error;
+          }
+        }
+      });
+      
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
+      }
+    }, 0);
+    
+    return () => clearTimeout(timeoutId);
+  }, [schema, formValues]); // Include formValues to re-validate when values change
 
   const validateField = useCallback((field: InputField, value: any): string | null => {
     if (!field.validation) return null;
