@@ -1,5 +1,8 @@
 import React from 'react';
 import { InputField } from '../../../../types/input';
+import { Checkbox } from '../../../../components/ui/checkbox';
+import { Label } from '../../../../components/ui/label';
+import { cn } from '../../../../lib/utils';
 
 interface CheckboxInputProps {
   field: InputField;
@@ -10,28 +13,99 @@ interface CheckboxInputProps {
 }
 
 const CheckboxInput = ({ field, value, error, onChange, onBlur }: CheckboxInputProps) => {
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.checked);
+  // Handle multiple checkbox options
+  if (field.options && field.options.length > 0) {
+    const selectedValues = Array.isArray(value) ? value : [];
+
+    const handleOptionChange = (optionValue: string, checked: boolean) => {
+      let newValues;
+      if (checked) {
+        newValues = [...selectedValues, optionValue];
+      } else {
+        newValues = selectedValues.filter((v: string) => v !== optionValue);
+      }
+      onChange(newValues);
+    };
+
+    return (
+      <div className="space-y-3">
+        {field.label && (
+          <Label className={cn(error && "text-destructive")}>
+            {field.label}
+            {field.required && <span className="text-destructive ml-1">*</span>}
+          </Label>
+        )}
+        <div className="space-y-2">
+          {field.options.map((option, index) => {
+            const optionValue = typeof option === 'string' ? option : String(option.value);
+            const optionLabel = typeof option === 'string' ? option : option.label;
+            const isDisabled = field.disabled || (typeof option === 'object' && option.disabled);
+            const isChecked = selectedValues.includes(optionValue);
+
+            return (
+              <div key={index} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`${field.id}_${index}`}
+                  checked={isChecked}
+                  disabled={isDisabled}
+                  onCheckedChange={(checked) => handleOptionChange(optionValue, checked as boolean)}
+                  onBlur={onBlur}
+                />
+                <Label
+                  htmlFor={`${field.id}_${index}`}
+                  className={cn(
+                    "text-sm font-normal cursor-pointer",
+                    isDisabled && "cursor-not-allowed opacity-70"
+                  )}
+                >
+                  {optionLabel}
+                </Label>
+              </div>
+            );
+          })}
+        </div>
+        {field.description && (
+          <p className="text-sm text-muted-foreground">{field.description}</p>
+        )}
+        {error && (
+          <p className="text-sm text-destructive">{error}</p>
+        )}
+      </div>
+    );
+  }
+
+  // Handle single checkbox
+  const handleSingleChange = (checked: boolean) => {
+    onChange(checked);
   };
 
   return (
-    <div className="flex items-center">
-      <input
-        type="checkbox"
-        id={field.id}
-        name={field.name}
-        checked={value || false}
-        disabled={field.disabled}
-        required={field.required}
-        onChange={handleChange}
-        onBlur={onBlur}
-        className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-neutral-300 rounded"
-      />
-      <label htmlFor={field.id} className="ml-2 text-sm text-neutral-700">
-        {field.label}
-      </label>
+    <div className="space-y-3">
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id={field.id}
+          checked={value || false}
+          disabled={field.disabled}
+          onCheckedChange={handleSingleChange}
+          onBlur={onBlur}
+        />
+        <Label
+          htmlFor={field.id}
+          className={cn(
+            "text-sm font-normal cursor-pointer",
+            field.disabled && "cursor-not-allowed opacity-70",
+            error && "text-destructive"
+          )}
+        >
+          {field.label}
+          {field.required && <span className="text-destructive ml-1">*</span>}
+        </Label>
+      </div>
+      {field.description && (
+        <p className="text-sm text-muted-foreground">{field.description}</p>
+      )}
       {error && (
-        <span className="ml-2 text-sm text-error-600">{error}</span>
+        <p className="text-sm text-destructive">{error}</p>
       )}
     </div>
   );

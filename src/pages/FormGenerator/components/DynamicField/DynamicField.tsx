@@ -18,9 +18,10 @@ interface DynamicFieldProps {
   error?: string;
   onChange: (value: any) => void;
   onBlur?: () => void;
+  depth?: number; // For nested group coloring
 }
 
-const DynamicField = ({ field, value, error, onChange, onBlur }: DynamicFieldProps) => {
+const DynamicField = ({ field, value, error, onChange, onBlur, depth }: DynamicFieldProps) => {
   const renderInput = () => {
     switch (field.type) {
       case 'text':
@@ -128,6 +129,7 @@ const DynamicField = ({ field, value, error, onChange, onBlur }: DynamicFieldPro
             error={error}
             onChange={onChange}
             onBlur={onBlur}
+            depth={depth}
           />
         );
 
@@ -145,31 +147,8 @@ const DynamicField = ({ field, value, error, onChange, onBlur }: DynamicFieldPro
     }
   };
 
-  // Group fields handle their own layout
-  if (field.type === 'group') {
-    return renderInput();
-  }
-
-  return (
-    <div className="space-y-1">
-      {field.type !== 'checkbox' && field.label && (
-        <label htmlFor={field.id} className="block text-sm font-medium text-neutral-700">
-          {field.label}
-          {field.required && <span className="text-error-500 ml-1">*</span>}
-        </label>
-      )}
-      
-      {renderInput()}
-      
-      {field.description && (
-        <p className="text-xs text-neutral-500">{field.description}</p>
-      )}
-      
-      {error && field.type !== 'checkbox' && field.type !== 'radio' && (
-        <p className="text-sm text-error-600">{error}</p>
-      )}
-    </div>
-  );
+  // All field components now handle their own layout
+  return renderInput();
 };
 
 export default DynamicField;

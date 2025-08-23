@@ -1,5 +1,8 @@
 import React from 'react';
 import { InputField } from '../../../../types/input';
+import { Input } from '../../../../components/ui/input';
+import { Label } from '../../../../components/ui/label';
+import { cn } from '../../../../lib/utils';
 
 interface FileInputProps {
   field: InputField;
@@ -14,27 +17,36 @@ const FileInput = ({ field, value, error, onChange, onBlur }: FileInputProps) =>
     onChange(e.target.files);
   };
 
-  const getInputClasses = () => {
-    const baseClasses = "w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors";
-    if (error) {
-      return `${baseClasses} border-error-300 focus:ring-error-500 focus:border-error-500`;
-    }
-    return `${baseClasses} border-neutral-300 focus:ring-primary-500 focus:border-primary-500`;
-  };
-
   return (
-    <input
-      type="file"
-      id={field.id}
-      name={field.name}
-      disabled={field.disabled}
-      required={field.required}
-      accept={field.accept}
-      multiple={field.multiple}
-      onChange={handleChange}
-      onBlur={onBlur}
-      className={getInputClasses()}
-    />
+    <div className="space-y-2">
+      {field.label && (
+        <Label htmlFor={field.id} className={cn(error && "text-destructive")}>
+          {field.label}
+          {field.required && <span className="text-destructive ml-1">*</span>}
+        </Label>
+      )}
+      <Input
+        type="file"
+        id={field.id}
+        name={field.name}
+        disabled={field.disabled}
+        required={field.required}
+        accept={field.accept}
+        multiple={field.multiple}
+        onChange={handleChange}
+        onBlur={onBlur}
+        className={cn(
+          "file:border-0 file:bg-transparent file:text-sm file:font-medium",
+          error && "border-destructive focus-visible:ring-destructive"
+        )}
+      />
+      {field.description && (
+        <p className="text-sm text-muted-foreground">{field.description}</p>
+      )}
+      {error && (
+        <p className="text-sm text-destructive">{error}</p>
+      )}
+    </div>
   );
 };
 

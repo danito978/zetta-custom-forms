@@ -1,5 +1,14 @@
 import React from 'react';
 import { InputField } from '../../../../types/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../../../../components/ui/select';
+import { Label } from '../../../../components/ui/label';
+import { cn } from '../../../../lib/utils';
 
 interface SelectInputProps {
   field: InputField;
@@ -10,40 +19,60 @@ interface SelectInputProps {
 }
 
 const SelectInput = ({ field, value, error, onChange, onBlur }: SelectInputProps) => {
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    onChange(e.target.value);
-  };
-
-  const getInputClasses = () => {
-    const baseClasses = "w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors";
-    if (error) {
-      return `${baseClasses} border-error-300 focus:ring-error-500 focus:border-error-500`;
-    }
-    return `${baseClasses} border-neutral-300 focus:ring-primary-500 focus:border-primary-500`;
+  const handleValueChange = (selectedValue: string) => {
+    onChange(selectedValue);
   };
 
   return (
-    <select
-      id={field.id}
-      name={field.name}
-      value={value || ''}
-      disabled={field.disabled}
-      required={field.required}
-      onChange={handleChange}
-      onBlur={onBlur}
-      className={getInputClasses()}
-    >
-      <option value="">{field.placeholder || 'Select an option'}</option>
-      {field.options?.map((option, index) => {
-        const optionValue = typeof option === 'string' ? option : String(option.value);
-        const optionLabel = typeof option === 'string' ? option : option.label;
-        return (
-          <option key={index} value={optionValue}>
-            {optionLabel}
-          </option>
-        );
-      })}
-    </select>
+    <div className="space-y-2">
+      {field.label && (
+        <Label htmlFor={field.id} className={cn(error && "text-destructive")}>
+          {field.label}
+          {field.required && <span className="text-destructive ml-1">*</span>}
+        </Label>
+      )}
+      <Select
+        value={value || ''}
+        onValueChange={handleValueChange}
+        disabled={field.disabled}
+        required={field.required}
+      >
+        <SelectTrigger 
+          className={cn(error && "border-destructive focus:ring-destructive")}
+          onBlur={onBlur}
+        >
+          <SelectValue placeholder={field.placeholder || 'Select an option'} />
+        </SelectTrigger>
+        <SelectContent>
+          {field.options?.map((option, index) => {
+            const optionValue = typeof option === 'string' ? option : String(option.value);
+            const optionLabel = typeof option === 'string' ? option : option.label;
+            const isDisabled = typeof option === 'object' && option.disabled;
+            
+            // Skip options with empty values as ShadCN Select doesn't allow them
+            if (!optionValue || optionValue === '') {
+              return null;
+            }
+            
+            return (
+              <SelectItem 
+                key={index} 
+                value={optionValue}
+                disabled={isDisabled}
+              >
+                {optionLabel}
+              </SelectItem>
+            );
+          }).filter(Boolean)}
+        </SelectContent>
+      </Select>
+      {field.description && (
+        <p className="text-sm text-muted-foreground">{field.description}</p>
+      )}
+      {error && (
+        <p className="text-sm text-destructive">{error}</p>
+      )}
+    </div>
   );
 };
 
