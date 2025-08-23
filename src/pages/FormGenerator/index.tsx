@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import Navigation from '../../components/Navigation';
 import { SchemaInput, FormGenerator } from './components';
 import defaultFormSchema from '../../lib/form-schema.json';
@@ -7,10 +7,10 @@ const FormGeneratorPage = () => {
   const [currentSchema, setCurrentSchema] = useState<any>(null);
   const [isSchemaValid, setIsSchemaValid] = useState(false);
 
-  const handleSchemaChange = (schema: any, isValid: boolean) => {
+  const handleSchemaChange = useCallback((schema: any, isValid: boolean) => {
     setCurrentSchema(schema);
     setIsSchemaValid(isValid);
-  };
+  }, []);
 
   const handleFormSubmit = (values: Record<string, any>) => {
     console.log('Form submitted with values:', values);
