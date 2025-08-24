@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { validateFormSchema, isValidJSON, ValidationResult } from '../utils/schemaValidator';
-import { saveCustomSchema, loadCustomSchema, clearCustomSchema, hasCustomSchema } from '../utils/localStorage';
+import { saveCustomSchema, loadCustomSchema, clearCustomSchema } from '../utils/localStorage';
 import defaultFormSchema from '../../../lib/form-schema.json';
 import { Button } from '../../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';

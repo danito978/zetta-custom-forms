@@ -22,6 +22,9 @@ interface SelectInputProps {
 const SelectInput = ({ field, error, onBlur, formValues, onAutoFill }: SelectInputProps) => {
   const { getFieldValue, updateField } = useFormContext();
   const value = getFieldValue(field.name);
+  
+  // Select component handles value changes automatically
+  
   const handleValueChange = (selectedValue: string) => {
     updateField(field.name, selectedValue);
   };
@@ -35,6 +38,7 @@ const SelectInput = ({ field, error, onBlur, formValues, onAutoFill }: SelectInp
         </Label>
       )}
       <Select
+        key={`${field.name}-${value}`} // Force re-render when value changes
         value={value || ''}
         onValueChange={handleValueChange}
         disabled={field.disabled}

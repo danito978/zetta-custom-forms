@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
+import { useFormAutoSave } from '../hooks/useFormAutoSave';
 
 // Types
 export interface FormContextType {
@@ -13,6 +14,12 @@ export interface FormContextType {
   
   // Auto-fill support
   autoFillFields: (updates: Record<string, any>) => void;
+  
+  // Auto-save support
+  hasSavedValues: boolean;
+  savedValuesInfo: { savedAt: string } | null;
+  loadSavedValues: () => Record<string, any> | null;
+  clearSavedValues: () => boolean;
 }
 
 // Create the context
@@ -32,15 +39,22 @@ interface FormProviderProps {
   children: ReactNode;
   initialValues?: Record<string, any>;
   onValuesChange?: (values: Record<string, any>) => void;
+  enableAutoSave?: boolean;
 }
 
 // Provider component
 export const FormProvider: React.FC<FormProviderProps> = ({ 
   children, 
   initialValues = {},
-  onValuesChange 
+  onValuesChange,
+  enableAutoSave = true
 }) => {
   const [formValues, setFormValuesState] = useState<Record<string, any>>(initialValues);
+  
+  // Auto-save hook
+  const autoSave = useFormAutoSave(formValues, {
+    enabled: enableAutoSave
+  });
 
   // Helper function to set nested values using dot notation
   const setNestedValue = (obj: Record<string, any>, path: string, value: any): Record<string, any> => {
@@ -122,13 +136,32 @@ export const FormProvider: React.FC<FormProviderProps> = ({
     });
   }, [onValuesChange]);
 
+  // Load saved values on mount if auto-save is enabled
+  useEffect(() => {
+    if (enableAutoSave) {
+      const savedValues = autoSave.loadSavedValues();
+      if (savedValues && Object.keys(savedValues).length > 0) {
+        // Merge saved values with initial values, prioritizing saved values
+        const mergedValues = { ...initialValues, ...savedValues };
+        setFormValuesState(mergedValues);
+        onValuesChange?.(mergedValues);
+      }
+    }
+  }, []); // Only run once on mount
+
   const contextValue: FormContextType = {
     formValues,
     updateField,
     getFieldValue,
     resetForm,
     setFormValues,
-    autoFillFields
+    autoFillFields,
+    
+    // Auto-save functionality
+    hasSavedValues: autoSave.hasSavedValues,
+    savedValuesInfo: autoSave.savedValuesInfo,
+    loadSavedValues: autoSave.loadSavedValues,
+    clearSavedValues: autoSave.clearSavedValues
   };
 
   return (

@@ -7,4 +7,5 @@ export { default as DynamicField } from './DynamicField';
 export { default as FormSubmissionDisplay } from './FormSubmissionDisplay';
 export { default as FormSubmissionError } from './FormSubmissionError';
 export { default as FormSubmissionLoading } from './FormSubmissionLoading';
+export { default as FormAutoSaveStatus } from './FormAutoSaveStatus';
 export { default as SchemaPreview } from './SchemaPreview';

@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import DynamicField from './DynamicField';
+import FormAutoSaveStatus from './FormAutoSaveStatus';
 import { Button } from '../../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
 import { getVisibleFields } from '../utils/visibilityEvaluator';
@@ -205,6 +206,7 @@ const FormGeneratorInternal = ({ schema, onSubmit }: FormGeneratorProps) => {
       </CardHeader>
 
       <CardContent>
+        <FormAutoSaveStatus className="mb-6" />
         <form onSubmit={handleSubmit} className="space-y-6">
         {fields.map((field) => (
           <DynamicField
