@@ -176,6 +176,34 @@ const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
     setTouched({});
   };
 
+  // Handle auto-fill from API integration
+  const handleAutoFill = useCallback((fieldUpdates: Record<string, any>) => {
+    setFormValues(prevValues => {
+      const newValues = { ...prevValues };
+      
+      // Apply field updates using dot notation for nested fields
+      Object.entries(fieldUpdates).forEach(([fieldPath, value]) => {
+        const pathParts = fieldPath.split('.');
+        let current = newValues;
+        
+        // Navigate to the parent object
+        for (let i = 0; i < pathParts.length - 1; i++) {
+          const part = pathParts[i];
+          if (!current[part] || typeof current[part] !== 'object') {
+            current[part] = {};
+          }
+          current = current[part];
+        }
+        
+        // Set the final value
+        const finalKey = pathParts[pathParts.length - 1];
+        current[finalKey] = value;
+      });
+      
+      return newValues;
+    });
+  }, []);
+
   if (!schema || !fields.length) {
     return (
       <div className="text-center py-8">
@@ -204,6 +232,7 @@ const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
             onChange={(value: any) => handleFieldChange(field.name, value)}
             onBlur={() => handleFieldBlur(field.name)}
             formValues={formValues}
+            onAutoFill={handleAutoFill}
           />
         ))}
 

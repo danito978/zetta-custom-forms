@@ -20,9 +20,10 @@ interface DynamicFieldProps {
   onBlur?: () => void;
   depth?: number; // For nested group coloring
   formValues?: Record<string, any>; // Full form context for dynamic validation
+  onAutoFill?: (fieldUpdates: Record<string, any>) => void; // API auto-fill callback
 }
 
-const DynamicField = ({ field, value, error, onChange, onBlur, depth, formValues }: DynamicFieldProps) => {
+const DynamicField = ({ field, value, error, onChange, onBlur, depth, formValues, onAutoFill }: DynamicFieldProps) => {
   const renderInput = () => {
     switch (field.type) {
       case 'text':
@@ -38,6 +39,8 @@ const DynamicField = ({ field, value, error, onChange, onBlur, depth, formValues
             error={error}
             onChange={onChange}
             onBlur={onBlur}
+            formValues={formValues}
+            onAutoFill={onAutoFill}
           />
         );
 
