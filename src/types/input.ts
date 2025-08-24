@@ -37,6 +37,17 @@ export interface VisibilityCondition {
   logic?: VisibilityLogic;
   conditions?: VisibilityConditionRule[];
 }
+
+// API Integration types
+export type ApiTrigger = 'onChange' | 'onBlur';
+
+export interface ApiIntegration {
+  trigger?: ApiTrigger;
+  apiFunction: string;
+  targetFields: Record<string, string>;
+  debounceMs?: number;
+  loadingMessage?: string;
+}
 export type InputMode = 'none' | 'text' | 'decimal' | 'numeric' | 'tel' | 'search' | 'email' | 'url';
 export type AutoCapitalize = 'off' | 'none' | 'on' | 'sentences' | 'words' | 'characters';
 
@@ -157,6 +168,9 @@ export interface InputField {
   
   // Visibility conditions
   visibilityCondition?: VisibilityCondition;
+  
+  // API Integration
+  apiIntegration?: ApiIntegration;
   
   // HTML attributes
   autoComplete?: AutoComplete;
