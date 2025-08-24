@@ -1,11 +1,9 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import DynamicField from './DynamicField';
-import { InputField } from '../../../types/input';
 import { Button } from '../../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
 import { getVisibleFields } from '../utils/visibilityEvaluator';
-import { validateFieldWithDynamicRules } from '../utils/dynamicValidationEvaluator';
-import { structureFormData, validateRequiredFields } from '../utils/formDataStructurer';
+import { structureFormData } from '../utils/formDataStructurer';
 import { FormProvider, useFormContext } from '../context/FormContext';
 import { ValidationProvider, useValidationContext } from '../context/ValidationContext';
 
@@ -16,17 +14,12 @@ interface FormGeneratorProps {
 
 // Internal component that uses FormContext and ValidationContext
 const FormGeneratorInternal = ({ schema, onSubmit }: FormGeneratorProps) => {
-  const { formValues, setFormValues, updateField, resetForm, autoFillFields } = useFormContext();
+  const { formValues, resetForm, autoFillFields } = useFormContext();
   const { 
-    errors, 
-    touched, 
-    isFormValid,
     validateField,
     setFieldTouched,
     clearAllErrors,
-    validateAllFields,
-    getFieldError,
-    isFieldTouched
+    validateAllFields
   } = useValidationContext();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -136,16 +129,7 @@ const FormGeneratorInternal = ({ schema, onSubmit }: FormGeneratorProps) => {
 
   // Note: Validation logic moved to ValidationContext
 
-  const handleFieldChange = useCallback((fieldName: string, value: any) => {
-    updateField(fieldName, value);
-    
-    // Find the field definition for validation
-    const field = fields.find(f => f.name === fieldName);
-    if (field) {
-      // Trigger real-time validation (debounced in ValidationContext)
-      validateField(fieldName, value, field, { ...formValues, [fieldName]: value });
-    }
-  }, [updateField, fields, formValues, validateField]);
+  // Note: Field changes are now handled directly by individual field components
 
   const handleFieldBlur = useCallback((fieldName: string) => {
     setFieldTouched(fieldName, true);

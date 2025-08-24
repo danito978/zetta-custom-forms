@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
 import { InputField } from '../../../types/input';
 import { validateFieldWithDynamicRules } from '../utils/dynamicValidationEvaluator';
+import { getVisibleFields } from '../utils/visibilityEvaluator';
 
 // Types
 export interface ValidationError {
@@ -142,23 +143,7 @@ export const ValidationProvider: React.FC<ValidationProviderProps> = ({
     }
   }, [clearDebounceTimer]);
 
-  // Debounced validation for real-time validation
-  const validateFieldDebounced = useCallback((
-    fieldPath: string, 
-    value: any, 
-    field: InputField, 
-    formValues: Record<string, any>
-  ) => {
-    if (!realTimeValidation) return;
-
-    clearDebounceTimer(fieldPath);
-
-    const timer = setTimeout(() => {
-      validateField(fieldPath, value, field, formValues);
-    }, debounceMs);
-
-    setDebounceTimers(prev => ({ ...prev, [fieldPath]: timer }));
-  }, [realTimeValidation, debounceMs, clearDebounceTimer, validateField]);
+  // Note: Debounced validation is handled directly in validateField with clearDebounceTimer
 
   // Set field as touched
   const setFieldTouched = useCallback((fieldPath: string, isTouched: boolean = true) => {
@@ -190,10 +175,13 @@ export const ValidationProvider: React.FC<ValidationProviderProps> = ({
     schema: Record<string, InputField>, 
     formValues: Record<string, any>
   ): Promise<boolean> => {
+    // IMPORTANT: Only validate visible fields, just like the legacy validation
+    const visibleFields = getVisibleFields(schema, formValues);
+    
     const validationPromises: Promise<ValidationError | null>[] = [];
     const fieldPaths: string[] = [];
 
-    // Recursively collect all field paths
+    // Recursively collect all field paths from VISIBLE fields only
     const collectFieldPaths = (fields: Record<string, InputField>, prefix: string = '') => {
       Object.entries(fields).forEach(([key, field]) => {
         const fieldPath = prefix ? `${prefix}.${key}` : key;
@@ -211,7 +199,7 @@ export const ValidationProvider: React.FC<ValidationProviderProps> = ({
       });
     };
 
-    collectFieldPaths(schema);
+    collectFieldPaths(visibleFields); // Use visibleFields instead of schema
 
     // Wait for all validations to complete
     const results = await Promise.all(validationPromises);

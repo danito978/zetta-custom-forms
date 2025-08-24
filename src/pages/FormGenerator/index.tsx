@@ -1,32 +1,48 @@
 import React, { useState, useCallback } from 'react';
 import Navigation from '../../components/Navigation';
-import { SchemaInput, FormGenerator } from './components';
+import { 
+  SchemaInput, 
+  FormGenerator, 
+  FormSubmissionDisplay, 
+  FormSubmissionError, 
+  FormSubmissionLoading 
+} from './components';
+import { useFormSubmission } from './hooks/useFormSubmission';
 import defaultFormSchema from '../../lib/form-schema.json';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 
 const FormGeneratorPage = () => {
   const [currentSchema, setCurrentSchema] = useState<any>(null);
   const [isSchemaValid, setIsSchemaValid] = useState(false);
-  const [submittedData, setSubmittedData] = useState<any>(null);
+
+  // Use the submission hook for managing submission state
+  const {
+    submittedData,
+    isSubmitting,
+    submitError,
+    handleSubmit,
+    clearSubmission,
+    retrySubmission
+  } = useFormSubmission(async (data) => {
+    // Optional: Add custom submission logic here
+    // For example, send to an API:
+    // await fetch('/api/submit-form', { 
+    //   method: 'POST', 
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify(data) 
+    // });
+    
+    // For now, we just simulate a successful submission
+    // In a real app, this would be your API call
+    console.log('Form submitted:', data);
+  });
 
   const handleSchemaChange = useCallback((schema: any, isValid: boolean) => {
     setCurrentSchema(schema);
     setIsSchemaValid(isValid);
     // Clear submitted data when schema changes
-    setSubmittedData(null);
-  }, []);
-
-  const handleFormSubmit = (structuredData: Record<string, any>) => {
-    // Store the submitted data to display it
-    setSubmittedData({
-      data: structuredData,
-      submittedAt: new Date().toISOString(),
-      timestamp: Date.now()
-    });
-    
-    // You can also send this to an API here
-    // await fetch('/api/submit-form', { method: 'POST', body: JSON.stringify(structuredData) });
-  };
+    clearSubmission();
+  }, [clearSubmission]);
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -54,56 +70,29 @@ const FormGeneratorPage = () => {
           {isSchemaValid && currentSchema && (
             <FormGenerator 
               schema={currentSchema} 
-              onSubmit={handleFormSubmit}
+              onSubmit={handleSubmit}
             />
           )}
 
-          {/* Submitted Data Display */}
-          {submittedData && (
-            <Card className="mt-8">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <svg className="w-5 h-5 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Submitted Form Data
-                </CardTitle>
-                <CardDescription>
-                  Structured JSON output with proper hierarchy (submitted at {new Date(submittedData.submittedAt).toLocaleString()})
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-neutral-50 rounded-lg p-4 border">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-sm font-medium text-neutral-700">JSON Output:</h4>
-                    <button 
-                      onClick={() => navigator.clipboard.writeText(JSON.stringify(submittedData.data, null, 2))}
-                      className="text-xs px-3 py-1 bg-primary-100 text-primary-700 rounded hover:bg-primary-200 transition-colors"
-                    >
-                      Copy JSON
-                    </button>
-                  </div>
-                  <pre className="text-xs text-neutral-800 overflow-x-auto whitespace-pre-wrap max-h-96 overflow-y-auto">
-                    {JSON.stringify(submittedData.data, null, 2)}
-                  </pre>
-                </div>
-                
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                  <div className="bg-blue-50 p-3 rounded border">
-                    <div className="font-medium text-blue-800">Structure</div>
-                    <div className="text-blue-700">Mirrors form schema hierarchy</div>
-                  </div>
-                  <div className="bg-green-50 p-3 rounded border">
-                    <div className="font-medium text-green-800">Data Types</div>
-                    <div className="text-green-700">Numbers, dates preserved as-is</div>
-                  </div>
-                  <div className="bg-purple-50 p-3 rounded border">
-                    <div className="font-medium text-purple-800">Visibility</div>
-                    <div className="text-purple-700">Hidden fields excluded</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          {/* Submission States */}
+          {isSubmitting && (
+            <FormSubmissionLoading message="Processing your form submission..." />
+          )}
+
+          {submitError && (
+            <FormSubmissionError
+              error={submitError}
+              onRetry={retrySubmission}
+              onDismiss={clearSubmission}
+            />
+          )}
+
+          {submittedData && !isSubmitting && !submitError && (
+            <FormSubmissionDisplay
+              submittedData={submittedData}
+              onClear={clearSubmission}
+              onRetry={retrySubmission}
+            />
           )}
 
           {/* Instructions when no valid schema */}
