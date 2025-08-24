@@ -1,21 +1,28 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import DynamicField from './DynamicField';
-import { InputField } from '../../../types/input';
+import FormAutoSaveStatus from './FormAutoSaveStatus';
 import { Button } from '../../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
 import { getVisibleFields } from '../utils/visibilityEvaluator';
-import { validateFieldWithDynamicRules } from '../utils/dynamicValidationEvaluator';
-import { structureFormData, validateRequiredFields } from '../utils/formDataStructurer';
+import { structureFormData } from '../utils/formDataStructurer';
+import { FormProvider, useFormContext } from '../context/FormContext';
+import { ValidationProvider, useValidationContext } from '../context/ValidationContext';
 
 interface FormGeneratorProps {
   schema: any;
   onSubmit?: (values: Record<string, any>) => void;
 }
 
-const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
-  const [formValues, setFormValues] = useState<Record<string, any>>({});
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
+// Internal component that uses FormContext and ValidationContext
+const FormGeneratorInternal = ({ schema, onSubmit }: FormGeneratorProps) => {
+  const { formValues, resetForm, autoFillFields } = useFormContext();
+  const { 
+    validateField,
+    setFieldTouched,
+    clearAllErrors,
+    validateAllFields
+  } = useValidationContext();
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
@@ -38,9 +45,9 @@ const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
   useEffect(() => {
     if (!schema) return;
     
+    // Only clear errors when schema actually changes, not on every render
     // Clear all errors and touched states when schema changes
-    setErrors({});
-    setTouched({});
+    clearAllErrors();
     
     // Create a timeout to re-validate after state updates
     const timeoutId = setTimeout(() => {
@@ -115,40 +122,25 @@ const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
         }
       });
       
-      if (Object.keys(newErrors).length > 0) {
-        setErrors(newErrors);
-      }
+      // Errors are now handled by ValidationContext
     }, 0);
     
     return () => clearTimeout(timeoutId);
-  }, [schema, formValues]); // Include formValues to re-validate when values change
+  }, [schema]); // Only run when schema changes, not formValues
 
-  const validateField = useCallback((field: InputField, value: any): string | null => {
-    // Create updated form values that include the current field's value for validation context
-    const updatedFormValues = { ...formValues, [field.name]: value };
-    
-    // Use dynamic validation that considers conditional rules
-    return validateFieldWithDynamicRules(value, field.validation, updatedFormValues, field.required);
-  }, [formValues]);
+  // Note: Validation logic moved to ValidationContext
 
-  const handleFieldChange = useCallback((fieldName: string, value: any) => {
-    setFormValues(prev => ({ ...prev, [fieldName]: value }));
-    
-    // Clear error when user starts typing
-    if (errors[fieldName]) {
-      setErrors(prev => ({ ...prev, [fieldName]: '' }));
-    }
-  }, [errors]);
+  // Note: Field changes are now handled directly by individual field components
 
   const handleFieldBlur = useCallback((fieldName: string) => {
-    setTouched(prev => ({ ...prev, [fieldName]: true }));
+    setFieldTouched(fieldName, true);
     
     const field = fields.find(f => f.name === fieldName);
     if (field) {
-      const error = validateField(field, formValues[fieldName]);
-      setErrors(prev => ({ ...prev, [fieldName]: error || '' }));
+      // Trigger immediate validation on blur
+      validateField(fieldName, formValues[fieldName], field, formValues);
     }
-  }, [fields, formValues, validateField]);
+  }, [fields, formValues, validateField, setFieldTouched]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -158,25 +150,10 @@ const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
     setIsSubmitting(true);
     
     try {
-      // Validate all visible fields
-      const newErrors: Record<string, string> = {};
-      let hasErrors = false;
-
-      fields.forEach(field => {
-        const error = validateField(field, formValues[field.name]);
-        if (error) {
-          newErrors[field.name] = error;
-          hasErrors = true;
-        }
-      });
-
-      setErrors(newErrors);
-      setTouched(fields.reduce((acc, field) => ({ ...acc, [field.name]: true }), {}));
-
-      // Check if all required fields are valid using the new validator
-      const requiredValidation = validateRequiredFields(schema.fields || {}, formValues);
+      // Validate all fields using ValidationContext
+      const isValid = await validateAllFields(schema.fields || {}, formValues);
       
-      if (!hasErrors && requiredValidation.isValid) {
+      if (isValid) {
         // Structure the form data to mirror schema hierarchy, excluding hidden fields
         const structuredData = structureFormData(schema.fields || {}, formValues);
         
@@ -188,22 +165,7 @@ const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
         // Auto-hide success message after 3 seconds
         setTimeout(() => setSubmitStatus('idle'), 3000);
         
-      } else if (!requiredValidation.isValid) {
-        // Mark missing required fields as touched and show errors
-        const missingFieldErrors: Record<string, string> = {};
-        requiredValidation.missingFields.forEach(fieldPath => {
-          missingFieldErrors[fieldPath] = 'This field is required';
-        });
-        
-        setErrors(prev => ({ ...prev, ...missingFieldErrors }));
-        
-        // Mark missing fields as touched
-        const touchedUpdates: Record<string, boolean> = {};
-        requiredValidation.missingFields.forEach(fieldPath => {
-          touchedUpdates[fieldPath] = true;
-        });
-        setTouched(prev => ({ ...prev, ...touchedUpdates }));
-        
+      } else {
         setSubmitStatus('error');
       }
     } catch (error) {
@@ -215,40 +177,16 @@ const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
   };
 
   const handleReset = () => {
-    setFormValues({});
-    setErrors({});
-    setTouched({});
+    resetForm();
+    clearAllErrors();
     setSubmitStatus('idle');
     setIsSubmitting(false);
   };
 
   // Handle auto-fill from API integration
   const handleAutoFill = useCallback((fieldUpdates: Record<string, any>) => {
-    setFormValues(prevValues => {
-      const newValues = { ...prevValues };
-      
-      // Apply field updates using dot notation for nested fields
-      Object.entries(fieldUpdates).forEach(([fieldPath, value]) => {
-        const pathParts = fieldPath.split('.');
-        let current = newValues;
-        
-        // Navigate to the parent object
-        for (let i = 0; i < pathParts.length - 1; i++) {
-          const part = pathParts[i];
-          if (!current[part] || typeof current[part] !== 'object') {
-            current[part] = {};
-          }
-          current = current[part];
-        }
-        
-        // Set the final value
-        const finalKey = pathParts[pathParts.length - 1];
-        current[finalKey] = value;
-      });
-      
-      return newValues;
-    });
-  }, []);
+    autoFillFields(fieldUpdates);
+  }, [autoFillFields]);
 
   if (!schema || !fields.length) {
     return (
@@ -268,14 +206,13 @@ const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
       </CardHeader>
 
       <CardContent>
+        <FormAutoSaveStatus className="mb-6" />
         <form onSubmit={handleSubmit} className="space-y-6">
         {fields.map((field) => (
           <DynamicField
             key={field.id}
             field={field}
-            value={formValues[field.name]}
-            error={touched[field.name] ? errors[field.name] : undefined}
-            onChange={(value: any) => handleFieldChange(field.name, value)}
+            error={undefined} // Let ValidationContext handle all errors
             onBlur={() => handleFieldBlur(field.name)}
             formValues={formValues}
             onAutoFill={handleAutoFill}
@@ -307,11 +244,11 @@ const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
           </div>
         )}
 
-        <div className="flex gap-3 pt-4 border-t border-neutral-200">
+        <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-neutral-200">
           <Button 
             type="submit" 
             disabled={isSubmitting}
-            className="bg-primary-500 hover:bg-primary-600 disabled:bg-primary-300 disabled:cursor-not-allowed text-white font-medium px-6 py-2 transition-colors duration-200 flex items-center gap-2"
+            className="bg-primary-500 hover:bg-primary-600 disabled:bg-primary-300 disabled:cursor-not-allowed text-white font-medium px-6 py-2 transition-colors duration-200 flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             {isSubmitting ? (
               <>
@@ -331,7 +268,7 @@ const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
             type="button"
             onClick={handleReset}
             variant="outline"
-            className="border-warning-300 text-warning-700 hover:bg-warning-50 hover:border-warning-400 font-medium px-6 py-2 transition-colors duration-200 flex items-center gap-2"
+            className="border-warning-300 text-warning-700 hover:bg-warning-50 hover:border-warning-400 font-medium px-6 py-2 transition-colors duration-200 flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -352,6 +289,28 @@ const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
         )}
       </CardContent>
     </Card>
+  );
+};
+
+// Wrapper component that provides FormContext and ValidationContext
+const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
+  return (
+    <FormProvider 
+      initialValues={{}}
+      onValuesChange={(values) => {
+        // Optional: You can add global form change handlers here
+      }}
+    >
+      <ValidationProvider
+        realTimeValidation={true}
+        debounceMs={300}
+        onValidationChange={(isValid, errors) => {
+          // Optional: You can add global validation change handlers here
+        }}
+      >
+        <FormGeneratorInternal schema={schema} onSubmit={onSubmit} />
+      </ValidationProvider>
+    </FormProvider>
   );
 };
 

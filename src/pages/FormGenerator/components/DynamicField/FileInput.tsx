@@ -3,18 +3,21 @@ import { InputField } from '../../../../types/input';
 import { Input } from '../../../../components/ui/input';
 import { Label } from '../../../../components/ui/label';
 import { cn } from '../../../../lib/utils';
+import { useFormContext } from '../../context/FormContext';
 
 interface FileInputProps {
   field: InputField;
-  value: any;
   error?: string;
-  onChange: (value: any) => void;
   onBlur?: () => void;
+  formValues?: Record<string, any>;
+  onAutoFill?: (fieldUpdates: Record<string, any>) => void;
 }
 
-const FileInput = ({ field, value, error, onChange, onBlur }: FileInputProps) => {
+const FileInput = ({ field, error, onBlur, formValues, onAutoFill }: FileInputProps) => {
+  const { getFieldValue, updateField } = useFormContext();
+  const value = getFieldValue(field.name);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.files);
+    updateField(field.name, e.target.files);
   };
 
   return (

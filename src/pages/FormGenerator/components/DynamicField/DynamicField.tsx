@@ -14,16 +14,14 @@ import {
 
 interface DynamicFieldProps {
   field: InputField;
-  value: any;
   error?: string;
-  onChange: (value: any) => void;
   onBlur?: () => void;
   depth?: number; // For nested group coloring
   formValues?: Record<string, any>; // Full form context for dynamic validation
   onAutoFill?: (fieldUpdates: Record<string, any>) => void; // API auto-fill callback
 }
 
-const DynamicField = ({ field, value, error, onChange, onBlur, depth, formValues, onAutoFill }: DynamicFieldProps) => {
+const DynamicField = ({ field, error, onBlur, depth, formValues, onAutoFill }: DynamicFieldProps) => {
   const renderInput = () => {
     switch (field.type) {
       case 'text':
@@ -35,9 +33,7 @@ const DynamicField = ({ field, value, error, onChange, onBlur, depth, formValues
         return (
           <TextInput
             field={field}
-            value={value}
             error={error}
-            onChange={onChange}
             onBlur={onBlur}
             formValues={formValues}
             onAutoFill={onAutoFill}
@@ -48,10 +44,10 @@ const DynamicField = ({ field, value, error, onChange, onBlur, depth, formValues
         return (
           <NumberInput
             field={field}
-            value={value}
             error={error}
-            onChange={onChange}
             onBlur={onBlur}
+            formValues={formValues}
+            onAutoFill={onAutoFill}
           />
         );
 
@@ -59,10 +55,10 @@ const DynamicField = ({ field, value, error, onChange, onBlur, depth, formValues
         return (
           <TextareaInput
             field={field}
-            value={value}
             error={error}
-            onChange={onChange}
             onBlur={onBlur}
+            formValues={formValues}
+            onAutoFill={onAutoFill}
           />
         );
 
@@ -70,10 +66,10 @@ const DynamicField = ({ field, value, error, onChange, onBlur, depth, formValues
         return (
           <SelectInput
             field={field}
-            value={value}
             error={error}
-            onChange={onChange}
             onBlur={onBlur}
+            formValues={formValues}
+            onAutoFill={onAutoFill}
           />
         );
 
@@ -81,10 +77,10 @@ const DynamicField = ({ field, value, error, onChange, onBlur, depth, formValues
         return (
           <CheckboxInput
             field={field}
-            value={value}
             error={error}
-            onChange={onChange}
             onBlur={onBlur}
+            formValues={formValues}
+            onAutoFill={onAutoFill}
           />
         );
 
@@ -92,10 +88,10 @@ const DynamicField = ({ field, value, error, onChange, onBlur, depth, formValues
         return (
           <RadioInput
             field={field}
-            value={value}
             error={error}
-            onChange={onChange}
             onBlur={onBlur}
+            formValues={formValues}
+            onAutoFill={onAutoFill}
           />
         );
 
@@ -107,10 +103,10 @@ const DynamicField = ({ field, value, error, onChange, onBlur, depth, formValues
         return (
           <DateInput
             field={field}
-            value={value}
             error={error}
-            onChange={onChange}
             onBlur={onBlur}
+            formValues={formValues}
+            onAutoFill={onAutoFill}
           />
         );
 
@@ -118,10 +114,10 @@ const DynamicField = ({ field, value, error, onChange, onBlur, depth, formValues
         return (
           <FileInput
             field={field}
-            value={value}
             error={error}
-            onChange={onChange}
             onBlur={onBlur}
+            formValues={formValues}
+            onAutoFill={onAutoFill}
           />
         );
 
@@ -129,12 +125,11 @@ const DynamicField = ({ field, value, error, onChange, onBlur, depth, formValues
         return (
           <GroupInput
             field={field}
-            value={value}
             error={error}
-            onChange={onChange}
             onBlur={onBlur}
             depth={depth}
             formValues={formValues}
+            onAutoFill={onAutoFill}
           />
         );
 
@@ -143,10 +138,10 @@ const DynamicField = ({ field, value, error, onChange, onBlur, depth, formValues
         return (
           <TextInput
             field={field}
-            value={value}
             error={error}
-            onChange={onChange}
             onBlur={onBlur}
+            formValues={formValues}
+            onAutoFill={onAutoFill}
           />
         );
     }

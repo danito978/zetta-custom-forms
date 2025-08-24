@@ -3,19 +3,22 @@ import { InputField } from '../../../../types/input';
 import { Input } from '../../../../components/ui/input';
 import { Label } from '../../../../components/ui/label';
 import { cn } from '../../../../lib/utils';
+import { useFormContext } from '../../context/FormContext';
 
 interface NumberInputProps {
   field: InputField;
-  value: any;
   error?: string;
-  onChange: (value: any) => void;
   onBlur?: () => void;
+  formValues?: Record<string, any>;
+  onAutoFill?: (fieldUpdates: Record<string, any>) => void;
 }
 
-const NumberInput = ({ field, value, error, onChange, onBlur }: NumberInputProps) => {
+const NumberInput = ({ field, error, onBlur, formValues, onAutoFill }: NumberInputProps) => {
+  const { getFieldValue, updateField } = useFormContext();
+  const value = getFieldValue(field.name);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const numValue = e.target.value === '' ? '' : Number(e.target.value);
-    onChange(numValue);
+    updateField(field.name, numValue);
   };
 
   return (

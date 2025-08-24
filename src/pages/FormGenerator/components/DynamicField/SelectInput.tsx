@@ -9,18 +9,24 @@ import {
 } from '../../../../components/ui/select';
 import { Label } from '../../../../components/ui/label';
 import { cn } from '../../../../lib/utils';
+import { useFormContext } from '../../context/FormContext';
 
 interface SelectInputProps {
   field: InputField;
-  value: any;
   error?: string;
-  onChange: (value: any) => void;
   onBlur?: () => void;
+  formValues?: Record<string, any>;
+  onAutoFill?: (fieldUpdates: Record<string, any>) => void;
 }
 
-const SelectInput = ({ field, value, error, onChange, onBlur }: SelectInputProps) => {
+const SelectInput = ({ field, error, onBlur, formValues, onAutoFill }: SelectInputProps) => {
+  const { getFieldValue, updateField } = useFormContext();
+  const value = getFieldValue(field.name);
+  
+  // Select component handles value changes automatically
+  
   const handleValueChange = (selectedValue: string) => {
-    onChange(selectedValue);
+    updateField(field.name, selectedValue);
   };
 
   return (
@@ -32,6 +38,7 @@ const SelectInput = ({ field, value, error, onChange, onBlur }: SelectInputProps
         </Label>
       )}
       <Select
+        key={`${field.name}-${value}`} // Force re-render when value changes
         value={value || ''}
         onValueChange={handleValueChange}
         disabled={field.disabled}

@@ -3,16 +3,19 @@ import { InputField } from '../../../../types/input';
 import { Checkbox } from '../../../../components/ui/checkbox';
 import { Label } from '../../../../components/ui/label';
 import { cn } from '../../../../lib/utils';
+import { useFormContext } from '../../context/FormContext';
 
 interface CheckboxInputProps {
   field: InputField;
-  value: any;
   error?: string;
-  onChange: (value: any) => void;
   onBlur?: () => void;
+  formValues?: Record<string, any>;
+  onAutoFill?: (fieldUpdates: Record<string, any>) => void;
 }
 
-const CheckboxInput = ({ field, value, error, onChange, onBlur }: CheckboxInputProps) => {
+const CheckboxInput = ({ field, error, onBlur, formValues, onAutoFill }: CheckboxInputProps) => {
+  const { getFieldValue, updateField } = useFormContext();
+  const value = getFieldValue(field.name);
   // Handle multiple checkbox options
   if (field.options && field.options.length > 0) {
     const selectedValues = Array.isArray(value) ? value : [];
@@ -24,7 +27,7 @@ const CheckboxInput = ({ field, value, error, onChange, onBlur }: CheckboxInputP
       } else {
         newValues = selectedValues.filter((v: string) => v !== optionValue);
       }
-      onChange(newValues);
+      updateField(field.name, newValues);
     };
 
     return (
@@ -75,9 +78,9 @@ const CheckboxInput = ({ field, value, error, onChange, onBlur }: CheckboxInputP
   }
 
   // Handle single checkbox
-  const handleSingleChange = (checked: boolean) => {
-    onChange(checked);
-  };
+      const handleSingleChange = (checked: boolean) => {
+      updateField(field.name, checked);
+    };
 
   return (
     <div className="space-y-3">

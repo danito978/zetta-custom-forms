@@ -3,18 +3,21 @@ import { InputField } from '../../../../types/input';
 import { Input } from '../../../../components/ui/input';
 import { Label } from '../../../../components/ui/label';
 import { cn } from '../../../../lib/utils';
+import { useFormContext } from '../../context/FormContext';
 
 interface DateInputProps {
   field: InputField;
-  value: any;
   error?: string;
-  onChange: (value: any) => void;
   onBlur?: () => void;
+  formValues?: Record<string, any>;
+  onAutoFill?: (fieldUpdates: Record<string, any>) => void;
 }
 
-const DateInput = ({ field, value, error, onChange, onBlur }: DateInputProps) => {
+const DateInput = ({ field, error, onBlur, formValues, onAutoFill }: DateInputProps) => {
+  const { getFieldValue, updateField } = useFormContext();
+  const value = getFieldValue(field.name);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value);
+    updateField(field.name, e.target.value);
   };
 
   return (
