@@ -146,6 +146,43 @@
         {"required": ["conditions"]}
       ]
     },
+    "apiIntegration": {
+      "type": "object",
+      "description": "Configuration for API-based auto-fill functionality",
+      "properties": {
+        "trigger": {
+          "type": "string",
+          "enum": ["onChange", "onBlur"],
+          "default": "onBlur",
+          "description": "When to trigger the API call"
+        },
+        "apiFunction": {
+          "type": "string",
+          "description": "Name of the API function to call (e.g., 'fetchCityData')"
+        },
+        "targetFields": {
+          "type": "object",
+          "description": "Fields to auto-fill with API response data",
+          "patternProperties": {
+            "^[a-zA-Z][a-zA-Z0-9_.]*$": {
+              "type": "string",
+              "description": "Path to data in API response (e.g., 'region', 'postalCode')"
+            }
+          }
+        },
+        "debounceMs": {
+          "type": "number",
+          "default": 500,
+          "description": "Debounce delay in milliseconds"
+        },
+        "loadingMessage": {
+          "type": "string",
+          "default": "Loading...",
+          "description": "Message to show while API call is in progress"
+        }
+      },
+      "required": ["apiFunction", "targetFields"]
+    },
     "validation": {
       "type": "object",
       "properties": {

@@ -603,6 +603,77 @@
             }
           }
         }
+      },
+      "apiIntegrationSection": {
+        "id": "apiIntegrationSection",
+        "name": "apiIntegrationSection",
+        "type": "group",
+        "label": "🌐 API Integration Examples",
+        "description": "This section demonstrates auto-fill functionality using external API data",
+        "required": false,
+        "fields": {
+          "bulgarianCity": {
+            "id": "bulgarianCity",
+            "name": "bulgarianCity",
+            "type": "text",
+            "label": "Bulgarian City",
+            "placeholder": "Enter a Bulgarian city name (e.g., Sofia, Plovdiv, Varna)",
+            "description": "Type a Bulgarian city name and click away to auto-fill region and postal code",
+            "required": false,
+            "apiIntegration": {
+              "trigger": "onBlur",
+              "apiFunction": "fetchCityData",
+              "targetFields": {
+                "apiIntegrationSection.region": "region",
+                "apiIntegrationSection.postalCode": "postalCode",
+                "apiIntegrationSection.population": "population"
+              },
+              "debounceMs": 500,
+              "loadingMessage": "Fetching city data..."
+            }
+          },
+          "region": {
+            "id": "region",
+            "name": "region",
+            "type": "text",
+            "label": "Region",
+            "placeholder": "Auto-filled from city data",
+            "description": "This field will be automatically filled when you enter a valid Bulgarian city",
+            "required": false,
+            "readonly": true
+          },
+          "postalCode": {
+            "id": "postalCode",
+            "name": "postalCode",
+            "type": "text",
+            "label": "Postal Code",
+            "placeholder": "Auto-filled from city data",
+            "description": "This field will be automatically filled when you enter a valid Bulgarian city",
+            "required": false,
+            "readonly": true
+          },
+          "population": {
+            "id": "population",
+            "name": "population",
+            "type": "number",
+            "label": "Population",
+            "placeholder": "Auto-filled from city data",
+            "description": "This field will be automatically filled when you enter a valid Bulgarian city",
+            "required": false,
+            "readonly": true
+          },
+          "availableCities": {
+            "id": "availableCities",
+            "name": "availableCities",
+            "type": "textarea",
+            "label": "Available Cities",
+            "defaultValue": "Try these Bulgarian cities:\n• Sofia\n• Plovdiv\n• Varna\n• Burgas\n• Ruse\n• Stara Zagora\n• Pleven\n• Sliven\n• Dobrich\n• Shumen",
+            "description": "List of cities available in the mock API",
+            "required": false,
+            "readonly": true,
+            "rows": 6
+          }
+        }
       }
     },
       "required": [
