@@ -3,18 +3,21 @@ import { InputField } from '../../../../types/input';
 import { Textarea } from '../../../../components/ui/textarea';
 import { Label } from '../../../../components/ui/label';
 import { cn } from '../../../../lib/utils';
+import { useFormContext } from '../../context/FormContext';
 
 interface TextareaInputProps {
   field: InputField;
-  value: any;
   error?: string;
-  onChange: (value: any) => void;
   onBlur?: () => void;
+  formValues?: Record<string, any>;
+  onAutoFill?: (fieldUpdates: Record<string, any>) => void;
 }
 
-const TextareaInput = ({ field, value, error, onChange, onBlur }: TextareaInputProps) => {
+const TextareaInput = ({ field, error, onBlur, formValues, onAutoFill }: TextareaInputProps) => {
+  const { getFieldValue, updateField } = useFormContext();
+  const value = getFieldValue(field.name);
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    onChange(e.target.value);
+    updateField(field.name, e.target.value);
   };
 
   return (

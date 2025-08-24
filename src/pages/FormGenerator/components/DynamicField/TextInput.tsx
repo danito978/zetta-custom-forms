@@ -4,18 +4,20 @@ import { Input } from '../../../../components/ui/input';
 import { Label } from '../../../../components/ui/label';
 import { cn } from '../../../../lib/utils';
 import { useApiIntegration } from '../../hooks/useApiIntegration';
+import { useFormContext } from '../../context/FormContext';
 
 interface TextInputProps {
   field: InputField;
-  value: any;
   error?: string;
-  onChange: (value: any) => void;
   onBlur?: () => void;
   formValues?: Record<string, any>;
   onAutoFill?: (fieldUpdates: Record<string, any>) => void;
 }
 
-const TextInput = ({ field, value, error, onChange, onBlur, formValues, onAutoFill }: TextInputProps) => {
+const TextInput = ({ field, error, onBlur, formValues, onAutoFill }: TextInputProps) => {
+  const { getFieldValue, updateField } = useFormContext();
+  const value = getFieldValue(field.name);
+  
   // API integration hook
   const { isLoading, error: apiError, handleFieldChange, handleFieldBlur } = useApiIntegration(
     field.apiIntegration,
@@ -24,7 +26,7 @@ const TextInput = ({ field, value, error, onChange, onBlur, formValues, onAutoFi
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    onChange(newValue);
+    updateField(field.name, newValue);
     
     // Trigger API integration if configured
     if (field.apiIntegration) {

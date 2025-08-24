@@ -12,11 +12,10 @@ import {
 } from './index';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../../components/ui/card';
 import { validateFieldWithDynamicRules } from '../../utils/dynamicValidationEvaluator';
+import { useFormContext } from '../../context/FormContext';
 
 interface GroupInputProps {
   field: InputField;
-  value?: Record<string, any>;
-  onChange?: (value: Record<string, any>) => void;
   onBlur?: () => void;
   error?: string;
   depth?: number; // Track nesting depth for colored borders
@@ -59,16 +58,21 @@ const getFieldComponent = (fieldType: string) => {
   }
 };
 
-const GroupInput = ({ field, value = {}, onChange, onBlur, error, depth = 0, formValues = {}, onAutoFill }: GroupInputProps) => {
-  const [groupValues, setGroupValues] = useState<Record<string, any>>(value);
+const GroupInput = ({ field, onBlur, error, depth = 0, formValues = {}, onAutoFill }: GroupInputProps) => {
+  const { getFieldValue, updateField } = useFormContext();
   const [groupErrors, setGroupErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  
+  // Get the group value from context using the field name
+  const groupValues = getFieldValue(field.name) || {};
 
   // Convert fields object to array for rendering
+  // Update field names to include the group path for proper context access
   const fields = field.fields ? Object.entries(field.fields).map(([key, fieldData]) => ({
     ...fieldData,
     id: fieldData.id || key,
-    name: fieldData.name || key,
+    name: `${field.name}.${fieldData.name || key}`, // Use nested path for context
+    originalName: fieldData.name || key // Keep original name for local operations
   })) : [];
 
   // Get border color based on nesting depth
@@ -97,12 +101,7 @@ const GroupInput = ({ field, value = {}, onChange, onBlur, error, depth = 0, for
     return colors[depth % colors.length] || 'bg-card';
   };
 
-  // Initialize with the provided value
-  useEffect(() => {
-    if (value && Object.keys(value).length > 0) {
-      setGroupValues(value);
-    }
-  }, [value]);
+  // No need for useEffect - groupValues comes directly from context
 
   // Dynamic validation for group fields
   const validateField = useCallback((fieldDef: InputField, fieldValue: any): string | null => {
@@ -120,65 +119,36 @@ const GroupInput = ({ field, value = {}, onChange, onBlur, error, depth = 0, for
   }, [formValues, groupValues, field.name]);
 
   const handleFieldChange = useCallback((fieldName: string, fieldValue: any) => {
-    const newGroupValues = {
-      ...groupValues,
-      [fieldName]: fieldValue
-    };
+    // The fieldName is already the full nested path from the updated field names
+    // No need to construct it again - just use updateField directly
+    // This is handled by the field components themselves now
     
-    setGroupValues(newGroupValues);
-    
-    // Notify parent of the change immediately
-    onChange?.(newGroupValues);
-
-    // Validate the field
+    // Find the field definition using the original name for validation
     const fieldDef = fields.find(f => f.name === fieldName);
     if (fieldDef) {
       const error = validateField(fieldDef, fieldValue);
+      const originalName = (fieldDef as any).originalName || fieldName.split('.').pop();
       setGroupErrors(prev => ({
         ...prev,
-        [fieldName]: error || ''
+        [originalName]: error || ''
       }));
     }
-  }, [fields, validateField, groupValues, onChange]);
+  }, [fields, validateField]);
 
   const handleFieldBlur = useCallback((fieldName: string) => {
+    const originalName = fieldName.split('.').pop() || fieldName;
     setTouched(prev => ({
       ...prev,
-      [fieldName]: true
+      [originalName]: true
     }));
     onBlur?.();
   }, [onBlur]);
 
   // Handle auto-fill for group fields
   const handleAutoFill = useCallback((fieldUpdates: Record<string, any>) => {
-    // Filter updates for this group
-    const groupPrefix = `${field.name}.`;
-    const groupUpdates: Record<string, any> = {};
-    const otherUpdates: Record<string, any> = {};
-
-    Object.entries(fieldUpdates).forEach(([fieldPath, value]) => {
-      if (fieldPath.startsWith(groupPrefix)) {
-        // This update is for our group
-        const localFieldName = fieldPath.substring(groupPrefix.length);
-        groupUpdates[localFieldName] = value;
-      } else {
-        // This update is for other fields
-        otherUpdates[fieldPath] = value;
-      }
-    });
-
-    // Update group values if we have group updates
-    if (Object.keys(groupUpdates).length > 0) {
-      const newGroupValues = { ...groupValues, ...groupUpdates };
-      setGroupValues(newGroupValues);
-      onChange?.(newGroupValues);
-    }
-
-    // Pass other updates up to parent
-    if (Object.keys(otherUpdates).length > 0) {
-      onAutoFill?.(otherUpdates);
-    }
-  }, [field.name, groupValues, onChange, onAutoFill]);
+    // Pass all updates to the parent - the context will handle the nested paths correctly
+    onAutoFill?.(fieldUpdates);
+  }, [onAutoFill]);
 
   return (
     <Card className={`mb-4 border-2 ${getBorderColor(depth)} ${getBackgroundColor(depth)}`}>
@@ -210,9 +180,7 @@ const GroupInput = ({ field, value = {}, onChange, onBlur, error, depth = 0, for
                                 <FieldComponent
                     key={groupField.id}
                     field={groupField}
-                    value={groupValues[groupField.name]}
-                    error={touched[groupField.name] ? groupErrors[groupField.name] : undefined}
-                    onChange={(value: any) => handleFieldChange(groupField.name, value)}
+                    error={touched[(groupField as any).originalName] ? groupErrors[(groupField as any).originalName] : undefined}
                     onBlur={() => handleFieldBlur(groupField.name)}
                     depth={groupField.type === 'group' ? depth + 1 : undefined}
                     formValues={formValues}

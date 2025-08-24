@@ -6,14 +6,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { getVisibleFields } from '../utils/visibilityEvaluator';
 import { validateFieldWithDynamicRules } from '../utils/dynamicValidationEvaluator';
 import { structureFormData, validateRequiredFields } from '../utils/formDataStructurer';
+import { FormProvider, useFormContext } from '../context/FormContext';
 
 interface FormGeneratorProps {
   schema: any;
   onSubmit?: (values: Record<string, any>) => void;
 }
 
-const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
-  const [formValues, setFormValues] = useState<Record<string, any>>({});
+// Internal component that uses FormContext
+const FormGeneratorInternal = ({ schema, onSubmit }: FormGeneratorProps) => {
+  const { formValues, setFormValues, updateField, resetForm, autoFillFields } = useFormContext();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -132,13 +134,13 @@ const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
   }, [formValues]);
 
   const handleFieldChange = useCallback((fieldName: string, value: any) => {
-    setFormValues(prev => ({ ...prev, [fieldName]: value }));
+    updateField(fieldName, value);
     
     // Clear error when user starts typing
     if (errors[fieldName]) {
       setErrors(prev => ({ ...prev, [fieldName]: '' }));
     }
-  }, [errors]);
+  }, [updateField, errors]);
 
   const handleFieldBlur = useCallback((fieldName: string) => {
     setTouched(prev => ({ ...prev, [fieldName]: true }));
@@ -215,7 +217,7 @@ const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
   };
 
   const handleReset = () => {
-    setFormValues({});
+    resetForm();
     setErrors({});
     setTouched({});
     setSubmitStatus('idle');
@@ -224,31 +226,8 @@ const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
 
   // Handle auto-fill from API integration
   const handleAutoFill = useCallback((fieldUpdates: Record<string, any>) => {
-    setFormValues(prevValues => {
-      const newValues = { ...prevValues };
-      
-      // Apply field updates using dot notation for nested fields
-      Object.entries(fieldUpdates).forEach(([fieldPath, value]) => {
-        const pathParts = fieldPath.split('.');
-        let current = newValues;
-        
-        // Navigate to the parent object
-        for (let i = 0; i < pathParts.length - 1; i++) {
-          const part = pathParts[i];
-          if (!current[part] || typeof current[part] !== 'object') {
-            current[part] = {};
-          }
-          current = current[part];
-        }
-        
-        // Set the final value
-        const finalKey = pathParts[pathParts.length - 1];
-        current[finalKey] = value;
-      });
-      
-      return newValues;
-    });
-  }, []);
+    autoFillFields(fieldUpdates);
+  }, [autoFillFields]);
 
   if (!schema || !fields.length) {
     return (
@@ -273,9 +252,7 @@ const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
           <DynamicField
             key={field.id}
             field={field}
-            value={formValues[field.name]}
             error={touched[field.name] ? errors[field.name] : undefined}
-            onChange={(value: any) => handleFieldChange(field.name, value)}
             onBlur={() => handleFieldBlur(field.name)}
             formValues={formValues}
             onAutoFill={handleAutoFill}
@@ -352,6 +329,21 @@ const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
         )}
       </CardContent>
     </Card>
+  );
+};
+
+// Wrapper component that provides FormContext
+const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
+  return (
+    <FormProvider 
+      initialValues={{}}
+      onValuesChange={(values) => {
+        // Optional: You can add global form change handlers here
+        console.log('Form values changed:', values);
+      }}
+    >
+      <FormGeneratorInternal schema={schema} onSubmit={onSubmit} />
+    </FormProvider>
   );
 };
 

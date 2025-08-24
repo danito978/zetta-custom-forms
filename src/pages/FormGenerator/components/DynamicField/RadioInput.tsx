@@ -3,18 +3,21 @@ import { InputField } from '../../../../types/input';
 import { RadioGroup, RadioGroupItem } from '../../../../components/ui/radio-group';
 import { Label } from '../../../../components/ui/label';
 import { cn } from '../../../../lib/utils';
+import { useFormContext } from '../../context/FormContext';
 
 interface RadioInputProps {
   field: InputField;
-  value: any;
   error?: string;
-  onChange: (value: any) => void;
   onBlur?: () => void;
+  formValues?: Record<string, any>;
+  onAutoFill?: (fieldUpdates: Record<string, any>) => void;
 }
 
-const RadioInput = ({ field, value, error, onChange, onBlur }: RadioInputProps) => {
+const RadioInput = ({ field, error, onBlur, formValues, onAutoFill }: RadioInputProps) => {
+  const { getFieldValue, updateField } = useFormContext();
+  const value = getFieldValue(field.name);
   const handleValueChange = (selectedValue: string) => {
-    onChange(selectedValue);
+    updateField(field.name, selectedValue);
   };
 
   return (
