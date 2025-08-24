@@ -43,7 +43,7 @@ const SelectInput = ({ field, value, error, onChange, onBlur }: SelectInputProps
         >
           <SelectValue placeholder={field.placeholder || 'Select an option'} />
         </SelectTrigger>
-        <SelectContent className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 shadow-lg">
+        <SelectContent className="!bg-white !border-gray-200 shadow-lg max-h-60 overflow-y-auto">
           {field.options?.map((option, index) => {
             const optionValue = typeof option === 'string' ? option : String(option.value);
             const optionLabel = typeof option === 'string' ? option : option.label;
@@ -59,7 +59,7 @@ const SelectInput = ({ field, value, error, onChange, onBlur }: SelectInputProps
                 key={index} 
                 value={optionValue}
                 disabled={isDisabled}
-                className="text-neutral-900 dark:text-neutral-100 hover:bg-primary-50 dark:hover:bg-primary-900/20 focus:bg-primary-100 dark:focus:bg-primary-900/30 cursor-pointer"
+                className="!text-gray-900 !bg-white hover:!bg-blue-50 focus:!bg-blue-100 cursor-pointer px-3 py-2 data-[disabled]:opacity-50 data-[disabled]:pointer-events-none"
               >
                 {optionLabel}
               </SelectItem>

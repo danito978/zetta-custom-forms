@@ -11,6 +11,7 @@ import {
   FileInput
 } from './index';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../../components/ui/card';
+import { validateFieldWithDynamicRules } from '../../utils/dynamicValidationEvaluator';
 
 interface GroupInputProps {
   field: InputField;
@@ -19,6 +20,7 @@ interface GroupInputProps {
   onBlur?: () => void;
   error?: string;
   depth?: number; // Track nesting depth for colored borders
+  formValues?: Record<string, any>; // Full form context for dynamic validation
 }
 
 // Helper function to get the appropriate field component
@@ -56,7 +58,7 @@ const getFieldComponent = (fieldType: string) => {
   }
 };
 
-const GroupInput = ({ field, value = {}, onChange, onBlur, error, depth = 0 }: GroupInputProps) => {
+const GroupInput = ({ field, value = {}, onChange, onBlur, error, depth = 0, formValues = {} }: GroupInputProps) => {
   const [groupValues, setGroupValues] = useState<Record<string, any>>(value);
   const [groupErrors, setGroupErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -101,48 +103,20 @@ const GroupInput = ({ field, value = {}, onChange, onBlur, error, depth = 0 }: G
     }
   }, [value]);
 
-  // Basic validation for group fields
+  // Dynamic validation for group fields
   const validateField = useCallback((fieldDef: InputField, fieldValue: any): string | null => {
-    if (!fieldDef.validation) return null;
-
-    const validation = fieldDef.validation;
-
-    // Required validation
-    if (fieldDef.required && (!fieldValue || fieldValue === '')) {
-      return validation.messages?.required || `${fieldDef.label || fieldDef.name} is required`;
-    }
-
-    // Skip other validations if field is empty and not required
-    if (!fieldValue || fieldValue === '') return null;
-
-    // String validations
-    if (typeof fieldValue === 'string') {
-      if (validation.minLength && fieldValue.length < validation.minLength) {
-        return validation.messages?.minLength || `Must be at least ${validation.minLength} characters`;
+    // Create updated form values that include the current field's value and group context
+    const updatedFormValues = {
+      ...formValues,
+      [field.name]: {
+        ...groupValues,
+        [fieldDef.name]: fieldValue
       }
-      if (validation.maxLength && fieldValue.length > validation.maxLength) {
-        return validation.messages?.maxLength || `Cannot exceed ${validation.maxLength} characters`;
-      }
-      if (validation.pattern) {
-        const regex = new RegExp(validation.pattern);
-        if (!regex.test(fieldValue)) {
-          return validation.messages?.pattern || 'Invalid format';
-        }
-      }
-    }
-
-    // Number validations
-    if (typeof fieldValue === 'number') {
-      if (validation.min !== undefined && fieldValue < validation.min) {
-        return validation.messages?.min || `Must be at least ${validation.min}`;
-      }
-      if (validation.max !== undefined && fieldValue > validation.max) {
-        return validation.messages?.max || `Cannot exceed ${validation.max}`;
-      }
-    }
-
-    return null;
-  }, []);
+    };
+    
+    // Use dynamic validation that considers conditional rules
+    return validateFieldWithDynamicRules(fieldValue, fieldDef.validation, updatedFormValues, fieldDef.required);
+  }, [formValues, groupValues, field.name]);
 
   const handleFieldChange = useCallback((fieldName: string, fieldValue: any) => {
     const newGroupValues = {

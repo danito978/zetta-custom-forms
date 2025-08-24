@@ -60,6 +60,25 @@ export interface ValidationMessages {
   custom?: string;
 }
 
+export interface ConditionalValidationRule {
+  condition: {
+    field: string;
+    operator: VisibilityOperator;
+    value?: string | number | boolean | Array<string | number | boolean>;
+  };
+  validation: {
+    required?: boolean;
+    min?: number;
+    max?: number;
+    minLength?: number;
+    maxLength?: number;
+    pattern?: string;
+    format?: ValidationFormat;
+    custom?: string;
+    messages?: ValidationMessages;
+  };
+}
+
 export interface InputValidation {
   min?: number;
   max?: number;
@@ -69,6 +88,7 @@ export interface InputValidation {
   format?: ValidationFormat;
   custom?: string;
   messages?: ValidationMessages;
+  conditionalRules?: ConditionalValidationRule[];
 }
 
 export interface InputIcon {

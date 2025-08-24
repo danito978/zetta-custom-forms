@@ -4,6 +4,7 @@ import { InputField } from '../../../types/input';
 import { Button } from '../../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
 import { getVisibleFields } from '../utils/visibilityEvaluator';
+import { validateFieldWithDynamicRules } from '../utils/dynamicValidationEvaluator';
 
 interface FormGeneratorProps {
   schema: any;
@@ -94,7 +95,7 @@ const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
                   }
                   break;
                 case 'phone':
-                  isValid = /^[\+]?[1-9][\d]{0,15}$/.test(currentValue.replace(/[\s\-\(\)]/g, ''));
+                  isValid = /^[+]?[1-9][\d]{0,15}$/.test(currentValue.replace(/[\s\-()]/g, ''));
                   break;
                 default:
                   break;
@@ -120,76 +121,12 @@ const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
   }, [schema, formValues]); // Include formValues to re-validate when values change
 
   const validateField = useCallback((field: InputField, value: any): string | null => {
-    if (!field.validation) return null;
-
-    const validation = field.validation;
-
-    // Required validation
-    if (field.required && (!value || (typeof value === 'string' && !value.trim()))) {
-      return validation.messages?.required || `${field.label || field.name} is required`;
-    }
-
-    // Skip other validations if field is empty and not required
-    if (!value || (typeof value === 'string' && !value.trim())) {
-      return null;
-    }
-
-    // String length validations
-    if (typeof value === 'string') {
-      if (validation.minLength && value.length < validation.minLength) {
-        return validation.messages?.minLength || `Must be at least ${validation.minLength} characters`;
-      }
-      if (validation.maxLength && value.length > validation.maxLength) {
-        return validation.messages?.maxLength || `Cannot exceed ${validation.maxLength} characters`;
-      }
-    }
-
-    // Pattern validation
-    if (validation.pattern && typeof value === 'string') {
-      const regex = new RegExp(validation.pattern);
-      if (!regex.test(value)) {
-        return validation.messages?.pattern || 'Invalid format';
-      }
-    }
-
-    // Format validation
-    if (validation.format && typeof value === 'string') {
-      let isValid = true;
-      switch (validation.format) {
-        case 'email':
-          isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-          break;
-        case 'url':
-          try {
-            new URL(value);
-          } catch {
-            isValid = false;
-          }
-          break;
-        case 'phone':
-          isValid = /^[\+]?[1-9][\d]{0,15}$/.test(value.replace(/[\s\-\(\)]/g, ''));
-          break;
-        default:
-          break;
-      }
-      if (!isValid) {
-        return validation.messages?.format || `Invalid ${validation.format} format`;
-      }
-    }
-
-    // Numeric validations
-    if (typeof value === 'number' || (typeof value === 'string' && !isNaN(Number(value)))) {
-      const numValue = Number(value);
-      if (validation.min !== undefined && numValue < validation.min) {
-        return validation.messages?.min || `Must be at least ${validation.min}`;
-      }
-      if (validation.max !== undefined && numValue > validation.max) {
-        return validation.messages?.max || `Cannot exceed ${validation.max}`;
-      }
-    }
-
-    return null;
-  }, []);
+    // Create updated form values that include the current field's value for validation context
+    const updatedFormValues = { ...formValues, [field.name]: value };
+    
+    // Use dynamic validation that considers conditional rules
+    return validateFieldWithDynamicRules(value, field.validation, updatedFormValues, field.required);
+  }, [formValues]);
 
   const handleFieldChange = useCallback((fieldName: string, value: any) => {
     setFormValues(prev => ({ ...prev, [fieldName]: value }));
@@ -266,6 +203,7 @@ const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
             error={touched[field.name] ? errors[field.name] : undefined}
             onChange={(value: any) => handleFieldChange(field.name, value)}
             onBlur={() => handleFieldBlur(field.name)}
+            formValues={formValues}
           />
         ))}
 

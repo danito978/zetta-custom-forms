@@ -191,6 +191,71 @@
             "custom": { "type": "string" }
           },
           "description": "Custom validation error messages"
+        },
+        "conditionalRules": {
+          "type": "array",
+          "description": "Validation rules that apply based on other field values",
+          "items": {
+            "type": "object",
+            "properties": {
+              "condition": {
+                "type": "object",
+                "description": "Condition that must be met for this rule to apply",
+                "properties": {
+                  "field": {
+                    "type": "string",
+                    "description": "Name of the field whose value determines the rule"
+                  },
+                  "operator": {
+                    "type": "string",
+                    "enum": ["equals", "not_equals", "contains", "not_contains", "in", "not_in", "exists", "not_exists"],
+                    "description": "Comparison operator for the condition"
+                  },
+                  "value": {
+                    "oneOf": [
+                      {"type": "string"},
+                      {"type": "number"},
+                      {"type": "boolean"},
+                      {"type": "array", "items": {"oneOf": [{"type": "string"}, {"type": "number"}, {"type": "boolean"}]}}
+                    ],
+                    "description": "Value(s) to compare against"
+                  }
+                },
+                "required": ["field", "operator"]
+              },
+              "validation": {
+                "type": "object",
+                "description": "Validation rules to apply when condition is met",
+                "properties": {
+                  "required": {"type": "boolean"},
+                  "min": {"type": "number"},
+                  "max": {"type": "number"},
+                  "minLength": {"type": "number"},
+                  "maxLength": {"type": "number"},
+                  "pattern": {"type": "string"},
+                  "format": {
+                    "type": "string",
+                    "enum": ["email", "url", "date", "time", "datetime", "phone", "postal-code", "credit-card"]
+                  },
+                  "custom": {"type": "string"},
+                  "messages": {
+                    "type": "object",
+                    "properties": {
+                      "required": {"type": "string"},
+                      "min": {"type": "string"},
+                      "max": {"type": "string"},
+                      "minLength": {"type": "string"},
+                      "maxLength": {"type": "string"},
+                      "pattern": {"type": "string"},
+                      "format": {"type": "string"},
+                      "custom": {"type": "string"}
+                    }
+                  }
+                }
+              }
+            },
+            "required": ["condition", "validation"]
+          }
         }
       },
       "description": "Validation rules for the input field"
