@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { validateFormSchema, isValidJSON, ValidationResult } from '../utils/schemaValidator';
+import { saveCustomSchema, loadCustomSchema, clearCustomSchema, hasCustomSchema } from '../utils/localStorage';
 import defaultFormSchema from '../../../lib/form-schema.json';
 import { Button } from '../../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
@@ -12,10 +13,15 @@ interface SchemaInputProps {
 }
 
 const SchemaInput = ({ onSchemaChange, placeholder, defaultValue = '' }: SchemaInputProps) => {
-  const [schemaText, setSchemaText] = useState(defaultValue);
+  // Initialize with stored schema or defaultValue
+  const [schemaText, setSchemaText] = useState(() => {
+    const stored = loadCustomSchema();
+    return stored?.schema || defaultValue;
+  });
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
   const [isValidating, setIsValidating] = useState(false);
+  const [storedSchemaInfo, setStoredSchemaInfo] = useState<{ savedAt: string } | null>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   const validateAndParseSchema = useCallback((text: string) => {
@@ -57,9 +63,19 @@ const SchemaInput = ({ onSchemaChange, placeholder, defaultValue = '' }: SchemaI
   }, [onSchemaChange]);
 
   // Validate default value on mount
+  // Load stored schema info and validate on mount
   useEffect(() => {
-    if (defaultValue.trim()) {
+    const stored = loadCustomSchema();
+    if (stored && stored.schema.trim()) {
+      // Prioritize stored schema over defaultValue
+      setStoredSchemaInfo({ savedAt: stored.savedAt });
+      validateAndParseSchema(stored.schema);
+    } else if (defaultValue.trim()) {
+      // Use defaultValue if no stored schema
       validateAndParseSchema(defaultValue);
+      // Save the defaultValue to localStorage for future use
+      saveCustomSchema(defaultValue);
+      setStoredSchemaInfo({ savedAt: new Date().toISOString() });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultValue]); // Only depend on defaultValue, ignore validateAndParseSchema
@@ -67,6 +83,12 @@ const SchemaInput = ({ onSchemaChange, placeholder, defaultValue = '' }: SchemaI
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     setSchemaText(value);
+    
+    // Save to localStorage immediately (no debounce for saving)
+    const success = saveCustomSchema(value);
+    if (success) {
+      setStoredSchemaInfo({ savedAt: new Date().toISOString() });
+    }
     
     // Clear previous errors when schema changes
     setJsonError(null);
@@ -103,15 +125,21 @@ const SchemaInput = ({ onSchemaChange, placeholder, defaultValue = '' }: SchemaI
     setJsonError(null);
     setValidationResult(null);
     setIsValidating(false);
+    setStoredSchemaInfo(null);
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
+    
+    // Clear from localStorage as well
+    clearCustomSchema();
+    
     onSchemaChange?.(null, false);
   };
 
   const loadExampleSchema = () => {
     const formatted = JSON.stringify(defaultFormSchema, null, 2);
     setSchemaText(formatted);
+    setStoredSchemaInfo(null); // Clear stored info when loading example
     validateAndParseSchema(formatted);
   };
 
@@ -120,9 +148,25 @@ const SchemaInput = ({ onSchemaChange, placeholder, defaultValue = '' }: SchemaI
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Custom Schema Input</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              Custom Schema Input
+              {storedSchemaInfo && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0V6a2 2 0 012-2h4a2 2 0 012 2v1m-6 0h8m-8 0H6a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-2m-8 0V7a2 2 0 012-2h4a2 2 0 012 2v2" />
+                  </svg>
+                  Auto-saved
+                </span>
+              )}
+            </CardTitle>
             <CardDescription>
-              Define your form structure using JSON schema
+              {storedSchemaInfo ? (
+                <>
+                  Schema automatically saved locally (last saved: {new Date(storedSchemaInfo.savedAt).toLocaleString()})
+                </>
+              ) : (
+                'Define your form structure using JSON schema - changes are saved automatically'
+              )}
             </CardDescription>
           </div>
           <div className="flex gap-2">
