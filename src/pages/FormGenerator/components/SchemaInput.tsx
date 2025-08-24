@@ -146,12 +146,12 @@ const SchemaInput = ({ onSchemaChange, placeholder, defaultValue = '' }: SchemaI
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              Custom Schema Input
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex-1">
+            <CardTitle className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <span>Custom Schema Input</span>
               {storedSchemaInfo && (
-                <span className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                <span className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full w-fit">
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0V6a2 2 0 012-2h4a2 2 0 012 2v1m-6 0h8m-8 0H6a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-2m-8 0V7a2 2 0 012-2h4a2 2 0 012 2v2" />
                   </svg>
@@ -159,7 +159,7 @@ const SchemaInput = ({ onSchemaChange, placeholder, defaultValue = '' }: SchemaI
                 </span>
               )}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="mt-1">
               {storedSchemaInfo ? (
                 <>
                   Schema automatically saved locally (last saved: {new Date(storedSchemaInfo.savedAt).toLocaleString()})
@@ -169,7 +169,7 @@ const SchemaInput = ({ onSchemaChange, placeholder, defaultValue = '' }: SchemaI
               )}
             </CardDescription>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Button
               onClick={loadExampleSchema}
               size="sm"
