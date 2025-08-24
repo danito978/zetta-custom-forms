@@ -17,8 +17,6 @@ const FormGeneratorPage = () => {
   }, []);
 
   const handleFormSubmit = (structuredData: Record<string, any>) => {
-    console.log('Form submitted with structured data:', structuredData);
-    
     // Store the submitted data to display it
     setSubmittedData({
       data: structuredData,
