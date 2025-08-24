@@ -21,6 +21,7 @@ interface GroupInputProps {
   error?: string;
   depth?: number; // Track nesting depth for colored borders
   formValues?: Record<string, any>; // Full form context for dynamic validation
+  onAutoFill?: (fieldUpdates: Record<string, any>) => void; // API auto-fill callback
 }
 
 // Helper function to get the appropriate field component
@@ -58,7 +59,7 @@ const getFieldComponent = (fieldType: string) => {
   }
 };
 
-const GroupInput = ({ field, value = {}, onChange, onBlur, error, depth = 0, formValues = {} }: GroupInputProps) => {
+const GroupInput = ({ field, value = {}, onChange, onBlur, error, depth = 0, formValues = {}, onAutoFill }: GroupInputProps) => {
   const [groupValues, setGroupValues] = useState<Record<string, any>>(value);
   const [groupErrors, setGroupErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -148,6 +149,37 @@ const GroupInput = ({ field, value = {}, onChange, onBlur, error, depth = 0, for
     onBlur?.();
   }, [onBlur]);
 
+  // Handle auto-fill for group fields
+  const handleAutoFill = useCallback((fieldUpdates: Record<string, any>) => {
+    // Filter updates for this group
+    const groupPrefix = `${field.name}.`;
+    const groupUpdates: Record<string, any> = {};
+    const otherUpdates: Record<string, any> = {};
+
+    Object.entries(fieldUpdates).forEach(([fieldPath, value]) => {
+      if (fieldPath.startsWith(groupPrefix)) {
+        // This update is for our group
+        const localFieldName = fieldPath.substring(groupPrefix.length);
+        groupUpdates[localFieldName] = value;
+      } else {
+        // This update is for other fields
+        otherUpdates[fieldPath] = value;
+      }
+    });
+
+    // Update group values if we have group updates
+    if (Object.keys(groupUpdates).length > 0) {
+      const newGroupValues = { ...groupValues, ...groupUpdates };
+      setGroupValues(newGroupValues);
+      onChange?.(newGroupValues);
+    }
+
+    // Pass other updates up to parent
+    if (Object.keys(otherUpdates).length > 0) {
+      onAutoFill?.(otherUpdates);
+    }
+  }, [field.name, groupValues, onChange, onAutoFill]);
+
   return (
     <Card className={`mb-4 border-2 ${getBorderColor(depth)} ${getBackgroundColor(depth)}`}>
       <CardHeader>
@@ -175,15 +207,17 @@ const GroupInput = ({ field, value = {}, onChange, onBlur, error, depth = 0, for
             // Import individual field components to avoid circular dependency
             const FieldComponent = getFieldComponent(groupField.type);
             return (
-              <FieldComponent
-                key={groupField.id}
-                field={groupField}
-                value={groupValues[groupField.name]}
-                error={touched[groupField.name] ? groupErrors[groupField.name] : undefined}
-                onChange={(value: any) => handleFieldChange(groupField.name, value)}
-                onBlur={() => handleFieldBlur(groupField.name)}
-                depth={groupField.type === 'group' ? depth + 1 : undefined}
-              />
+                                <FieldComponent
+                    key={groupField.id}
+                    field={groupField}
+                    value={groupValues[groupField.name]}
+                    error={touched[groupField.name] ? groupErrors[groupField.name] : undefined}
+                    onChange={(value: any) => handleFieldChange(groupField.name, value)}
+                    onBlur={() => handleFieldBlur(groupField.name)}
+                    depth={groupField.type === 'group' ? depth + 1 : undefined}
+                    formValues={formValues}
+                    onAutoFill={handleAutoFill}
+                  />
             );
           })
         ) : (
