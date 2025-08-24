@@ -5,6 +5,7 @@ import { Button } from '../../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
 import { getVisibleFields } from '../utils/visibilityEvaluator';
 import { validateFieldWithDynamicRules } from '../utils/dynamicValidationEvaluator';
+import { structureFormData, validateRequiredFields } from '../utils/formDataStructurer';
 
 interface FormGeneratorProps {
   schema: any;
@@ -15,6 +16,8 @@ const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
   const [formValues, setFormValues] = useState<Record<string, any>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   // Extract visible fields from schema based on current form values
   const visibleFields = useMemo(() => {
@@ -147,26 +150,67 @@ const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
     }
   }, [fields, formValues, validateField]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate all fields
-    const newErrors: Record<string, string> = {};
-    let hasErrors = false;
+    // Reset submission status
+    setSubmitStatus('idle');
+    setIsSubmitting(true);
+    
+    try {
+      // Validate all visible fields
+      const newErrors: Record<string, string> = {};
+      let hasErrors = false;
 
-    fields.forEach(field => {
-      const error = validateField(field, formValues[field.name]);
-      if (error) {
-        newErrors[field.name] = error;
-        hasErrors = true;
+      fields.forEach(field => {
+        const error = validateField(field, formValues[field.name]);
+        if (error) {
+          newErrors[field.name] = error;
+          hasErrors = true;
+        }
+      });
+
+      setErrors(newErrors);
+      setTouched(fields.reduce((acc, field) => ({ ...acc, [field.name]: true }), {}));
+
+      // Check if all required fields are valid using the new validator
+      const requiredValidation = validateRequiredFields(schema.fields || {}, formValues);
+      
+      if (!hasErrors && requiredValidation.isValid) {
+        // Structure the form data to mirror schema hierarchy, excluding hidden fields
+        const structuredData = structureFormData(schema.fields || {}, formValues);
+        
+        // Call onSubmit and handle potential async operations
+        await onSubmit?.(structuredData);
+        
+        setSubmitStatus('success');
+        
+        // Auto-hide success message after 3 seconds
+        setTimeout(() => setSubmitStatus('idle'), 3000);
+        
+      } else if (!requiredValidation.isValid) {
+        // Mark missing required fields as touched and show errors
+        const missingFieldErrors: Record<string, string> = {};
+        requiredValidation.missingFields.forEach(fieldPath => {
+          missingFieldErrors[fieldPath] = 'This field is required';
+        });
+        
+        setErrors(prev => ({ ...prev, ...missingFieldErrors }));
+        
+        // Mark missing fields as touched
+        const touchedUpdates: Record<string, boolean> = {};
+        requiredValidation.missingFields.forEach(fieldPath => {
+          touchedUpdates[fieldPath] = true;
+        });
+        setTouched(prev => ({ ...prev, ...touchedUpdates }));
+        
+        setSubmitStatus('error');
       }
-    });
-
-    setErrors(newErrors);
-    setTouched(fields.reduce((acc, field) => ({ ...acc, [field.name]: true }), {}));
-
-    if (!hasErrors) {
-      onSubmit?.(formValues);
+    } catch (error) {
+      console.error('Form submission error:', error);
+      setSubmitStatus('error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -174,6 +218,8 @@ const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
     setFormValues({});
     setErrors({});
     setTouched({});
+    setSubmitStatus('idle');
+    setIsSubmitting(false);
   };
 
   // Handle auto-fill from API integration
@@ -236,15 +282,50 @@ const FormGenerator = ({ schema, onSubmit }: FormGeneratorProps) => {
           />
         ))}
 
+        {/* Submission Status Messages */}
+        {submitStatus === 'success' && (
+          <div className="mb-4 p-4 bg-success-50 border border-success-200 rounded-lg flex items-center gap-3">
+            <svg className="w-5 h-5 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <p className="text-success-800 font-medium">Form submitted successfully!</p>
+              <p className="text-success-700 text-sm">Your data has been processed and structured.</p>
+            </div>
+          </div>
+        )}
+        
+        {submitStatus === 'error' && (
+          <div className="mb-4 p-4 bg-error-50 border border-error-200 rounded-lg flex items-center gap-3">
+            <svg className="w-5 h-5 text-error-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <p className="text-error-800 font-medium">Please fix the errors below</p>
+              <p className="text-error-700 text-sm">All required fields must be filled out correctly.</p>
+            </div>
+          </div>
+        )}
+
         <div className="flex gap-3 pt-4 border-t border-neutral-200">
           <Button 
             type="submit" 
-            className="bg-primary-500 hover:bg-primary-600 text-white font-medium px-6 py-2 transition-colors duration-200 flex items-center gap-2"
+            disabled={isSubmitting}
+            className="bg-primary-500 hover:bg-primary-600 disabled:bg-primary-300 disabled:cursor-not-allowed text-white font-medium px-6 py-2 transition-colors duration-200 flex items-center gap-2"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            Submit Form
+            {isSubmitting ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                Submitting...
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Submit Form
+              </>
+            )}
           </Button>
           <Button
             type="button"
